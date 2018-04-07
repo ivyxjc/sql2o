@@ -1,4 +1,11 @@
-# sql2o [![Build Status](https://travis-ci.org/aaberg/sql2o.svg?branch=master)](https://travis-ci.org/aaberg/sql2o)
+# sql2o 
+
+<p align="center">
+    <a href="https://travis-ci.org/ivyxjc/sql2o"><img src="https://img.shields.io/travis/ivyxjc/sql2o.svg?style=flat-square"></a>
+    <a href="http://codecov.io/github/ivyxjc/sql2o?branch=dev"><img src="https://img.shields.io/codecov/c/github/ivyxjc/sql2o/dev.svg?style=flat-square"></a>
+    <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-4EB1BA.svg?style=flat-square"></a>
+
+</p>
 
 Sql2o is a small java library, with the purpose of making database interaction easy.
 When fetching data from the database, the ResultSet will automatically be filled into your POJO objects.
