@@ -11,3 +11,5 @@ settings-orig.xml
 
 # OSX
 .DS_Store
+
+**/jdbc.properties
