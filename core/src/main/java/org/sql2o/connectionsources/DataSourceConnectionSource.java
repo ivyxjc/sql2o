@@ -1,8 +1,8 @@
 package org.sql2o.connectionsources;
 
-import javax.sql.DataSource;
 import java.sql.Connection;
 import java.sql.SQLException;
+import javax.sql.DataSource;
 
 /**
  * The default implementation of {@link ConnectionSource},
@@ -15,6 +15,7 @@ public class DataSourceConnectionSource implements ConnectionSource {
 
     /**
      * Creates a ConnectionSource that gets connection from specified {@link DataSource }
+     *
      * @param dataSource a DataSource to get connections from
      */
     public DataSourceConnectionSource(DataSource dataSource) {

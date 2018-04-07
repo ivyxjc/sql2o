@@ -11,7 +11,7 @@ public class DoubleConverter extends NumberConverter<Double> {
 
     @Override
     protected Double convertNumberValue(Number val) {
-        return  val.doubleValue();
+        return val.doubleValue();
     }
 
     @Override

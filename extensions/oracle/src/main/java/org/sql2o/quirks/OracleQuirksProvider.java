@@ -27,7 +27,6 @@ public class OracleQuirksProvider implements QuirksProvider {
     @Override
     public boolean isUsableForClass(String className) {
         return className.startsWith("oracle.jdbc.")
-                || className.startsWith("oracle.jdbc.");
+            || className.startsWith("oracle.jdbc.");
     }
-
 }

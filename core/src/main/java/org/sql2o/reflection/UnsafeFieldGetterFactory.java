@@ -1,10 +1,9 @@
 package org.sql2o.reflection;
 
-import org.sql2o.Sql2oException;
-import sun.misc.Unsafe;
-
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
+import org.sql2o.Sql2oException;
+import sun.misc.Unsafe;
 
 /**
  * @author mdelapenya
@@ -12,6 +11,7 @@ import java.lang.reflect.Modifier;
 @SuppressWarnings("Unsafe")
 public class UnsafeFieldGetterFactory implements FieldGetterFactory, ObjectConstructorFactory {
     private final static Unsafe theUnsafe;
+
     static {
         try {
             Class unsafeClass = Class.forName("sun.misc.Unsafe");
@@ -23,13 +23,26 @@ public class UnsafeFieldGetterFactory implements FieldGetterFactory, ObjectConst
         }
     }
 
+    public static ObjectConstructor getConstructor(final Class<?> clazz) {
+        return new ObjectConstructor() {
+            public Object newInstance() {
+                try {
+                    return theUnsafe.allocateInstance(clazz);
+                } catch (InstantiationException e) {
+                    throw new Sql2oException("Could not create a new instance of class " + clazz,
+                        e);
+                }
+            }
+        };
+    }
+
     public Getter newGetter(final Field field) {
         final Class type = field.getType();
         final boolean isStatic = Modifier.isStatic(field.getModifiers());
 
-        final long offset =  isStatic
-                ? theUnsafe.staticFieldOffset(field)
-                : theUnsafe.objectFieldOffset(field);
+        final long offset = isStatic
+            ? theUnsafe.staticFieldOffset(field)
+            : theUnsafe.objectFieldOffset(field);
 
         if (!Modifier.isVolatile(field.getModifiers())) {
             if (type == Boolean.TYPE) {
@@ -238,16 +251,5 @@ public class UnsafeFieldGetterFactory implements FieldGetterFactory, ObjectConst
 
     public ObjectConstructor newConstructor(final Class<?> clazz) {
         return getConstructor(clazz);
-    }
-    public static ObjectConstructor getConstructor(final Class<?> clazz) {
-        return new ObjectConstructor() {
-            public Object newInstance() {
-                try {
-                    return theUnsafe.allocateInstance(clazz);
-                } catch (InstantiationException e) {
-                    throw new Sql2oException("Could not create a new instance of class " + clazz, e);
-                }
-            }
-        };
     }
 }

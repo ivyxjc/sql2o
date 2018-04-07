@@ -1,5 +1,8 @@
 package org.sql2o;
 
+import java.sql.ResultSet;
+import java.sql.ResultSetMetaData;
+import java.sql.SQLException;
 import org.sql2o.converters.Converter;
 import org.sql2o.converters.ConverterException;
 import org.sql2o.quirks.Quirks;
@@ -9,12 +12,18 @@ import org.sql2o.reflection.PojoMetadata;
 import org.sql2o.reflection.Setter;
 import org.sql2o.tools.AbstractCache;
 
-import java.sql.ResultSet;
-import java.sql.ResultSetMetaData;
-import java.sql.SQLException;
-
-
 public class DefaultResultSetHandlerFactory<T> implements ResultSetHandlerFactory<T> {
+    private static final AbstractCache<Key, ResultSetHandler, ResultSetMetaData>
+        c = new AbstractCache<Key, ResultSetHandler, ResultSetMetaData>() {
+        @Override
+        protected ResultSetHandler evaluate(Key key, ResultSetMetaData param) {
+            try {
+                return key.factory().newResultSetHandler0(param);
+            } catch (SQLException e) {
+                throw new RuntimeException(e);
+            }
+        }
+    };
     private final PojoMetadata metadata;
     private final Quirks quirks;
 
@@ -24,7 +33,8 @@ public class DefaultResultSetHandlerFactory<T> implements ResultSetHandlerFactor
     }
 
     @SuppressWarnings("unchecked")
-    private static Getter getGetter(final Quirks quirks, final String propertyPath, final PojoMetadata metadata) {
+    private static Getter getGetter(final Quirks quirks, final String propertyPath,
+        final PojoMetadata metadata) {
         int index = propertyPath.indexOf('.');
         if (index <= 0) {
             // Simple path - fast way
@@ -39,7 +49,10 @@ public class DefaultResultSetHandlerFactory<T> implements ResultSetHandlerFactor
                     try {
                         return converter.convert(getter.getProperty(obj));
                     } catch (ConverterException e) {
-                        throw new Sql2oException("Error trying to convert column " + propertyPath + " to type " + getter.getType(), e);
+                        throw new Sql2oException("Error trying to convert column "
+                            + propertyPath
+                            + " to type "
+                            + getter.getType(), e);
                     }
                 }
 
@@ -66,9 +79,9 @@ public class DefaultResultSetHandlerFactory<T> implements ResultSetHandlerFactor
 
     @SuppressWarnings("unchecked")
     private static Setter getSetter(
-            final Quirks quirks,
-            final String propertyPath,
-            final PojoMetadata metadata) {
+        final Quirks quirks,
+        final String propertyPath,
+        final PojoMetadata metadata) {
         int index = propertyPath.indexOf('.');
         if (index <= 0) {
             // Simple path - fast way
@@ -83,7 +96,10 @@ public class DefaultResultSetHandlerFactory<T> implements ResultSetHandlerFactor
                     try {
                         setter.setProperty(obj, converter.convert(value));
                     } catch (ConverterException e) {
-                        throw new Sql2oException("Error trying to convert column " + propertyPath + " to type " + setter.getType(), e);
+                        throw new Sql2oException("Error trying to convert column "
+                            + propertyPath
+                            + " to type "
+                            + setter.getType(), e);
                     }
                 }
 
@@ -108,75 +124,19 @@ public class DefaultResultSetHandlerFactory<T> implements ResultSetHandlerFactor
         };
     }
 
-    private static class Key {
-        final String stringKey;
-        final DefaultResultSetHandlerFactory f;
-
-        DefaultResultSetHandlerFactory factory(){
-            return f;
-        }
-
-        private PojoMetadata getMetadata() {
-            return f.metadata;
-        }
-
-        private Quirks getQuirksMode() {
-            return f.quirks;
-        }
-
-        private Key(String stringKey, DefaultResultSetHandlerFactory f) {
-            this.stringKey = stringKey;
-            this.f = f;
-        }
-
-        @Override
-        public boolean equals(Object o) {
-            if (this == o) return true;
-            if (o == null || getClass() != o.getClass()) return false;
-
-            Key key = (Key) o;
-
-            return f.metadata.equals(key.getMetadata())
-                    && f.quirks == key.getQuirksMode()
-                    && stringKey.equals(key.stringKey);
-
-        }
-
-        @Override
-        public int hashCode() {
-            int result = f.metadata.hashCode();
-            result = 31 * result + f.quirks.hashCode();
-            result = 31 * result + stringKey.hashCode();
-            return result;
-        }
-    }
-
-
-    private static final AbstractCache<Key,ResultSetHandler,ResultSetMetaData>
-     c = new AbstractCache<Key, ResultSetHandler, ResultSetMetaData>() {
-        @Override
-        protected ResultSetHandler evaluate(Key key, ResultSetMetaData param) {
-            try {
-                return key.factory().newResultSetHandler0(param);
-            } catch (SQLException e) {
-                throw new RuntimeException(e);
-            }
-        }
-    };
-
     @SuppressWarnings("unchecked")
-    public ResultSetHandler<T> newResultSetHandler(final ResultSetMetaData meta) throws SQLException {
+    public ResultSetHandler<T> newResultSetHandler(final ResultSetMetaData meta)
+        throws SQLException {
         StringBuilder stringBuilder = new StringBuilder();
         for (int i = 1; i <= meta.getColumnCount(); i++) {
-            stringBuilder.append(quirks.getColumnName(meta,i)).append("\n");
+            stringBuilder.append(quirks.getColumnName(meta, i)).append("\n");
         }
-        return c.get(new Key(stringBuilder.toString(), this),meta);
-
+        return c.get(new Key(stringBuilder.toString(), this), meta);
     }
 
-
     @SuppressWarnings("unchecked")
-    private ResultSetHandler<T> newResultSetHandler0(final ResultSetMetaData meta) throws SQLException {
+    private ResultSetHandler<T> newResultSetHandler0(final ResultSetMetaData meta)
+        throws SQLException {
         final Getter[] getters;
         final Setter[] setters;
         final Converter converter;
@@ -196,7 +156,7 @@ public class DefaultResultSetHandlerFactory<T> implements ResultSetHandlerFactor
             // If more than 1 column is fetched (we cannot fall back to executeScalar),
             // and the getter doesn't exist, throw exception.
             if (this.metadata.throwOnMappingFailure && getters[i] == null && columnCount > 1) {
-                 throw new Sql2oException("Could not map " + colName + " to any property.");
+                throw new Sql2oException("Could not map " + colName + " to any property.");
             }
         }
 
@@ -224,7 +184,9 @@ public class DefaultResultSetHandlerFactory<T> implements ResultSetHandlerFactor
                     try {
                         return (T) converter.convert(quirks.getRSVal(resultSet, 1));
                     } catch (ConverterException e) {
-                        throw new Sql2oException("Error occurred while converting value from database to type " + metadata.getType(), e);
+                        throw new Sql2oException(
+                            "Error occurred while converting value from database to type "
+                                + metadata.getType(), e);
                     }
                 }
 
@@ -239,5 +201,47 @@ public class DefaultResultSetHandlerFactory<T> implements ResultSetHandlerFactor
                 return (T) pojo;
             }
         };
+    }
+
+    private static class Key {
+        final String stringKey;
+        final DefaultResultSetHandlerFactory f;
+
+        private Key(String stringKey, DefaultResultSetHandlerFactory f) {
+            this.stringKey = stringKey;
+            this.f = f;
+        }
+
+        DefaultResultSetHandlerFactory factory() {
+            return f;
+        }
+
+        private PojoMetadata getMetadata() {
+            return f.metadata;
+        }
+
+        private Quirks getQuirksMode() {
+            return f.quirks;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+
+            Key key = (Key) o;
+
+            return f.metadata.equals(key.getMetadata())
+                && f.quirks == key.getQuirksMode()
+                && stringKey.equals(key.stringKey);
+        }
+
+        @Override
+        public int hashCode() {
+            int result = f.metadata.hashCode();
+            result = 31 * result + f.quirks.hashCode();
+            result = 31 * result + stringKey.hashCode();
+            return result;
+        }
     }
 }

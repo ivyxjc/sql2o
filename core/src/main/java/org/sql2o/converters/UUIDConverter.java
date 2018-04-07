@@ -7,15 +7,15 @@ import java.util.UUID;
  */
 public class UUIDConverter extends ConverterBase<UUID> {
     public UUID convert(Object val) throws ConverterException {
-        if (val == null){
+        if (val == null) {
             return null;
         }
 
-        if (val instanceof UUID){
-            return (UUID)val;
+        if (val instanceof UUID) {
+            return (UUID) val;
         }
 
-        if(val instanceof String){
+        if (val instanceof String) {
             return UUID.fromString((String) val);
         }
 

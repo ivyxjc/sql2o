@@ -5,8 +5,8 @@ package org.sql2o;
  */
 public class UserInserterFactory {
 
-    public static UserInserter buildUserInserter(boolean useBind){
-        if (useBind){
+    public static UserInserter buildUserInserter(boolean useBind) {
+        if (useBind) {
             return new BindUserInserter();
         } else {
             return new PlainUserInserter();
@@ -30,8 +30,8 @@ public class UserInserterFactory {
         @Override
         public void insertUser(Query insertQuery, int idx) {
             insertQuery.addParameter("name", "a name " + idx)
-                    .addParameter("email", String.format("test%s@email.com", idx))
-                    .addParameter("text", "some text").addToBatch();
+                .addParameter("email", String.format("test%s@email.com", idx))
+                .addParameter("text", "some text").addToBatch();
         }
     }
 }

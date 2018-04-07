@@ -13,8 +13,8 @@ public class FactoryFacade {
         ObjectConstructorFactory o;
         try {
             m = (MethodSetterFactory) Class
-                    .forName("org.sql2o.reflection.MethodAccessorsGenerator")
-                    .newInstance();
+                .forName("org.sql2o.reflection.MethodAccessorsGenerator")
+                .newInstance();
             mg = (MethodGetterFactory) m;
             o = (ObjectConstructorFactory) m;
         } catch (Throwable ex) {
@@ -29,7 +29,7 @@ public class FactoryFacade {
             fg = (FieldGetterFactory) clsg.newInstance();
             Class cls = Class.forName("org.sql2o.reflection.UnsafeFieldSetterFactory");
             f = (FieldSetterFactory) cls.newInstance();
-            if(o==null) o = (ObjectConstructorFactory) f;
+            if (o == null) o = (ObjectConstructorFactory) f;
         } catch (Throwable ex) {
             fg = new ReflectionFieldGetterFactory();
             f = new ReflectionFieldSetterFactory();

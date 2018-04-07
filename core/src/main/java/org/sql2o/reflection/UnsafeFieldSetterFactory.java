@@ -1,14 +1,14 @@
 package org.sql2o.reflection;
 
-import org.sql2o.Sql2oException;
-import sun.misc.Unsafe;
-
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
+import org.sql2o.Sql2oException;
+import sun.misc.Unsafe;
 
 @SuppressWarnings("Unsafe")
 public class UnsafeFieldSetterFactory implements FieldSetterFactory, ObjectConstructorFactory {
     private final static Unsafe theUnsafe;
+
     static {
         try {
             Class unsafeClass = Class.forName("sun.misc.Unsafe");
@@ -20,13 +20,26 @@ public class UnsafeFieldSetterFactory implements FieldSetterFactory, ObjectConst
         }
     }
 
+    public static ObjectConstructor getConstructor(final Class<?> clazz) {
+        return new ObjectConstructor() {
+            public Object newInstance() {
+                try {
+                    return theUnsafe.allocateInstance(clazz);
+                } catch (InstantiationException e) {
+                    throw new Sql2oException("Could not create a new instance of class " + clazz,
+                        e);
+                }
+            }
+        };
+    }
+
     public Setter newSetter(final Field field) {
         final Class type = field.getType();
         final boolean isStatic = Modifier.isStatic(field.getModifiers());
 
-        final long offset =  isStatic
-                ? theUnsafe.staticFieldOffset(field)
-                : theUnsafe.objectFieldOffset(field);
+        final long offset = isStatic
+            ? theUnsafe.staticFieldOffset(field)
+            : theUnsafe.objectFieldOffset(field);
 
         if (!Modifier.isVolatile(field.getModifiers())) {
             if (type == Boolean.TYPE) {
@@ -245,16 +258,5 @@ public class UnsafeFieldSetterFactory implements FieldSetterFactory, ObjectConst
 
     public ObjectConstructor newConstructor(final Class<?> clazz) {
         return getConstructor(clazz);
-    }
-    public static ObjectConstructor getConstructor(final Class<?> clazz) {
-        return new ObjectConstructor() {
-            public Object newInstance() {
-                try {
-                    return theUnsafe.allocateInstance(clazz);
-                } catch (InstantiationException e) {
-                    throw new Sql2oException("Could not create a new instance of class " + clazz, e);
-                }
-            }
-        };
     }
 }

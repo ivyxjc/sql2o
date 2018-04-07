@@ -1,16 +1,5 @@
 package org.sql2o;
 
-import org.sql2o.converters.Converter;
-import org.sql2o.converters.ConverterException;
-import org.sql2o.data.LazyTable;
-import org.sql2o.data.Row;
-import org.sql2o.data.Table;
-import org.sql2o.data.TableResultSetIterator;
-import org.sql2o.logging.LocalLoggerFactory;
-import org.sql2o.logging.Logger;
-import org.sql2o.quirks.Quirks;
-import org.sql2o.reflection.PojoIntrospector;
-
 import java.io.InputStream;
 import java.lang.reflect.InvocationTargetException;
 import java.sql.PreparedStatement;
@@ -28,6 +17,16 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import org.sql2o.converters.Converter;
+import org.sql2o.converters.ConverterException;
+import org.sql2o.data.LazyTable;
+import org.sql2o.data.Row;
+import org.sql2o.data.Table;
+import org.sql2o.data.TableResultSetIterator;
+import org.sql2o.logging.LocalLoggerFactory;
+import org.sql2o.logging.Logger;
+import org.sql2o.quirks.Quirks;
+import org.sql2o.reflection.PojoIntrospector;
 
 import static org.sql2o.converters.Convert.throwIfNull;
 
@@ -38,7 +37,9 @@ import static org.sql2o.converters.Convert.throwIfNull;
 public class Query implements AutoCloseable {
 
     private final static Logger logger = LocalLoggerFactory.getLogger(Query.class);
-
+    private final String[] columnNames;
+    private final Map<String, List<Integer>> paramNameToIdxMap;
+    private final Map<String, ParameterSetter> parameters;
     private Connection connection;
     private Map<String, String> caseSensitiveColumnMappings;
     private Map<String, String> columnMappings;
@@ -48,19 +49,11 @@ public class Query implements AutoCloseable {
     private boolean throwOnMappingFailure = true;
     private String name;
     private boolean returnGeneratedKeys;
-    private final String[] columnNames;
-    private final Map<String, List<Integer>> paramNameToIdxMap;
-    private final Map<String, ParameterSetter> parameters;
     private String parsedQuery;
     private int maxBatchRecords = 0;
     private int currentBatchRecords = 0;
 
     private ResultSetHandlerFactoryBuilder resultSetHandlerFactoryBuilder;
-
-    @Override
-    public String toString() {
-        return parsedQuery;
-    }
 
     public Query(Connection connection, String queryText, boolean returnGeneratedKeys) {
         this(connection, queryText, returnGeneratedKeys, null);
@@ -70,7 +63,8 @@ public class Query implements AutoCloseable {
         this(connection, queryText, false, columnNames);
     }
 
-    private Query(Connection connection, String queryText, boolean returnGeneratedKeys, String[] columnNames) {
+    private Query(Connection connection, String queryText, boolean returnGeneratedKeys,
+        String[] columnNames) {
         this.connection = connection;
         this.returnGeneratedKeys = returnGeneratedKeys;
         this.columnNames = columnNames;
@@ -80,12 +74,42 @@ public class Query implements AutoCloseable {
         paramNameToIdxMap = new HashMap<>();
         parameters = new HashMap<>();
 
-        parsedQuery = connection.getSql2o().getQuirks().getSqlParameterParsingStrategy().parseSql(queryText, paramNameToIdxMap);
+        parsedQuery = connection.getSql2o()
+            .getQuirks()
+            .getSqlParameterParsingStrategy()
+            .parseSql(queryText, paramNameToIdxMap);
+    }
+
+    private static <T> ResultSetHandlerFactory<T> newResultSetHandlerFactory(
+        final ResultSetHandler<T> resultSetHandler) {
+        return new ResultSetHandlerFactory<T>() {
+            public ResultSetHandler<T> newResultSetHandler(ResultSetMetaData resultSetMetaData) {
+                return resultSetHandler;
+            }
+        };
     }
 
     // ------------------------------------------------
     // ------------- Getter/Setters -------------------
     // ------------------------------------------------
+
+    // from http://stackoverflow.com/questions/5606338/cast-primitive-type-array-into-object-array-in-java
+    private static Object[] toObjectArray(Object val) {
+        if (val instanceof Object[]) {
+            return (Object[]) val;
+        }
+        int arrayLength = java.lang.reflect.Array.getLength(val);
+        Object[] outputArray = new Object[arrayLength];
+        for (int i = 0; i < arrayLength; ++i) {
+            outputArray[i] = java.lang.reflect.Array.get(val, i);
+        }
+        return outputArray;
+    }
+
+    @Override
+    public String toString() {
+        return parsedQuery;
+    }
 
     public boolean isCaseSensitive() {
         return caseSensitive;
@@ -114,7 +138,7 @@ public class Query implements AutoCloseable {
         return throwOnMappingFailure;
     }
 
-    public Connection getConnection(){
+    public Connection getConnection() {
         return this.connection;
     }
 
@@ -134,7 +158,12 @@ public class Query implements AutoCloseable {
         return resultSetHandlerFactoryBuilder;
     }
 
-    public void setResultSetHandlerFactoryBuilder(ResultSetHandlerFactoryBuilder resultSetHandlerFactoryBuilder) {
+    // ------------------------------------------------
+    // ------------- Add Parameters -------------------
+    // ------------------------------------------------
+
+    public void setResultSetHandlerFactoryBuilder(
+        ResultSetHandlerFactoryBuilder resultSetHandlerFactoryBuilder) {
         this.resultSetHandlerFactoryBuilder = resultSetHandlerFactoryBuilder;
     }
 
@@ -142,13 +171,11 @@ public class Query implements AutoCloseable {
         return paramNameToIdxMap;
     }
 
-    // ------------------------------------------------
-    // ------------- Add Parameters -------------------
-    // ------------------------------------------------
-
     private void addParameterInternal(String name, ParameterSetter parameterSetter) {
         if (!this.getParamNameToIdxMap().containsKey(name)) {
-            throw new Sql2oException("Failed to add parameter with name '" + name + "'. No parameter with that name is declared in the sql.");
+            throw new Sql2oException("Failed to add parameter with name '"
+                + name
+                + "'. No parameter with that name is declared in the sql.");
         }
         parameters.put(name, parameterSetter);
     }
@@ -166,43 +193,52 @@ public class Query implements AutoCloseable {
         return converter.toDatabaseParam(value);
     }
 
-    public <T> Query addParameter(String name, Class<T> parameterClass, T value){
+    public <T> Query addParameter(String name, Class<T> parameterClass, T value) {
         //TODO: must cover most of types: BigDecimal,Boolean,SmallInt,Double,Float,byte[]
-        if(InputStream.class.isAssignableFrom(parameterClass))
-            return addParameter(name, (InputStream)value);
-        if(Integer.class==parameterClass)
-            return addParameter(name, (Integer)value);
-        if(Long.class==parameterClass)
-            return addParameter(name, (Long)value);
-        if(String.class==parameterClass)
-            return addParameter(name, (String)value);
-        if(Timestamp.class==parameterClass)
-            return addParameter(name, (Timestamp)value);
-        if(Time.class==parameterClass)
-            return addParameter(name, (Time)value);
+        if (InputStream.class.isAssignableFrom(parameterClass)) {
+            return addParameter(name, (InputStream) value);
+        }
+        if (Integer.class == parameterClass) {
+            return addParameter(name, (Integer) value);
+        }
+        if (Long.class == parameterClass) {
+            return addParameter(name, (Long) value);
+        }
+        if (String.class == parameterClass) {
+            return addParameter(name, (String) value);
+        }
+        if (Timestamp.class == parameterClass) {
+            return addParameter(name, (Timestamp) value);
+        }
+        if (Time.class == parameterClass) {
+            return addParameter(name, (Time) value);
+        }
 
-        if(parameterClass.isArray()
-                // byte[] is used for blob already
-                && byte[].class != parameterClass) {
+        if (parameterClass.isArray()
+            // byte[] is used for blob already
+            && byte[].class != parameterClass) {
             return addParameter(name, toObjectArray(value));
         }
-        if(Collection.class.isAssignableFrom(parameterClass)) {
+        if (Collection.class.isAssignableFrom(parameterClass)) {
             return addParameter(name, (Collection) value);
         }
 
         final Object convertedValue = convertParameter(value);
 
         addParameterInternal(name, new ParameterSetter() {
-            public void setParameter(int paramIdx, PreparedStatement statement) throws SQLException {
-                getConnection().getSql2o().getQuirks().setParameter(statement, paramIdx, convertedValue);
+            public void setParameter(int paramIdx, PreparedStatement statement)
+                throws SQLException {
+                getConnection().getSql2o()
+                    .getQuirks()
+                    .setParameter(statement, paramIdx, convertedValue);
             }
         });
 
         return this;
     }
 
-    public Query withParams(Object... paramValues){
-        int i=0;
+    public Query withParams(Object... paramValues) {
+        int i = 0;
         for (Object paramValue : paramValues) {
             addParameter("p" + (++i), paramValue);
         }
@@ -212,15 +248,16 @@ public class Query implements AutoCloseable {
     @SuppressWarnings("unchecked")
     public Query addParameter(String name, Object value) {
         return value == null
-                ? addParameter(name, Object.class, null)
-                : addParameter(name,
-                    (Class<Object>) value.getClass(),
-                    value);
+            ? addParameter(name, Object.class, null)
+            : addParameter(name,
+                (Class<Object>) value.getClass(),
+                value);
     }
 
-    public Query addParameter(String name, final InputStream value){
+    public Query addParameter(String name, final InputStream value) {
         addParameterInternal(name, new ParameterSetter() {
-            public void setParameter(int paramIdx, PreparedStatement statement) throws SQLException {
+            public void setParameter(int paramIdx, PreparedStatement statement)
+                throws SQLException {
                 getConnection().getSql2o().getQuirks().setParameter(statement, paramIdx, value);
             }
         });
@@ -228,9 +265,10 @@ public class Query implements AutoCloseable {
         return this;
     }
 
-    public Query addParameter(String name, final int value){
+    public Query addParameter(String name, final int value) {
         addParameterInternal(name, new ParameterSetter() {
-            public void setParameter(int paramIdx, PreparedStatement statement) throws SQLException {
+            public void setParameter(int paramIdx, PreparedStatement statement)
+                throws SQLException {
                 getConnection().getSql2o().getQuirks().setParameter(statement, paramIdx, value);
             }
         });
@@ -240,7 +278,8 @@ public class Query implements AutoCloseable {
 
     public Query addParameter(String name, final Integer value) {
         addParameterInternal(name, new ParameterSetter() {
-            public void setParameter(int paramIdx, PreparedStatement statement) throws SQLException {
+            public void setParameter(int paramIdx, PreparedStatement statement)
+                throws SQLException {
                 getConnection().getSql2o().getQuirks().setParameter(statement, paramIdx, value);
             }
         });
@@ -248,9 +287,10 @@ public class Query implements AutoCloseable {
         return this;
     }
 
-    public Query addParameter(String name, final long value){
+    public Query addParameter(String name, final long value) {
         addParameterInternal(name, new ParameterSetter() {
-            public void setParameter(int paramIdx, PreparedStatement statement) throws SQLException {
+            public void setParameter(int paramIdx, PreparedStatement statement)
+                throws SQLException {
                 getConnection().getSql2o().getQuirks().setParameter(statement, paramIdx, value);
             }
         });
@@ -258,9 +298,10 @@ public class Query implements AutoCloseable {
         return this;
     }
 
-    public Query addParameter(String name, final Long value){
+    public Query addParameter(String name, final Long value) {
         addParameterInternal(name, new ParameterSetter() {
-            public void setParameter(int paramIdx, PreparedStatement statement) throws SQLException {
+            public void setParameter(int paramIdx, PreparedStatement statement)
+                throws SQLException {
                 getConnection().getSql2o().getQuirks().setParameter(statement, paramIdx, value);
             }
         });
@@ -270,7 +311,8 @@ public class Query implements AutoCloseable {
 
     public Query addParameter(String name, final String value) {
         addParameterInternal(name, new ParameterSetter() {
-            public void setParameter(int paramIdx, PreparedStatement statement) throws SQLException {
+            public void setParameter(int paramIdx, PreparedStatement statement)
+                throws SQLException {
                 getConnection().getSql2o().getQuirks().setParameter(statement, paramIdx, value);
             }
         });
@@ -278,9 +320,10 @@ public class Query implements AutoCloseable {
         return this;
     }
 
-    public Query addParameter(String name, final Timestamp value){
+    public Query addParameter(String name, final Timestamp value) {
         addParameterInternal(name, new ParameterSetter() {
-            public void setParameter(int paramIdx, PreparedStatement statement) throws SQLException {
+            public void setParameter(int paramIdx, PreparedStatement statement)
+                throws SQLException {
                 getConnection().getSql2o().getQuirks().setParameter(statement, paramIdx, value);
             }
         });
@@ -290,7 +333,8 @@ public class Query implements AutoCloseable {
 
     public Query addParameter(String name, final Time value) {
         addParameterInternal(name, new ParameterSetter() {
-            public void setParameter(int paramIdx, PreparedStatement statement) throws SQLException {
+            public void setParameter(int paramIdx, PreparedStatement statement)
+                throws SQLException {
                 getConnection().getSql2o().getQuirks().setParameter(statement, paramIdx, value);
             }
         });
@@ -301,7 +345,8 @@ public class Query implements AutoCloseable {
     public Query addParameter(String name, final boolean value) {
         addParameterInternal(name, new ParameterSetter() {
             @Override
-            public void setParameter(int paramIdx, PreparedStatement statement) throws SQLException {
+            public void setParameter(int paramIdx, PreparedStatement statement)
+                throws SQLException {
                 getConnection().getSql2o().getQuirks().setParameter(statement, paramIdx, value);
             }
         });
@@ -311,7 +356,8 @@ public class Query implements AutoCloseable {
     public Query addParameter(String name, final Boolean value) {
         addParameterInternal(name, new ParameterSetter() {
             @Override
-            public void setParameter(int paramIdx, PreparedStatement statement) throws SQLException {
+            public void setParameter(int paramIdx, PreparedStatement statement)
+                throws SQLException {
                 getConnection().getSql2o().getQuirks().setParameter(statement, paramIdx, value);
             }
         });
@@ -321,7 +367,8 @@ public class Query implements AutoCloseable {
     public Query addParameter(String name, final UUID value) {
         addParameterInternal(name, new ParameterSetter() {
             @Override
-            public void setParameter(int paramIdx, PreparedStatement statement) throws SQLException {
+            public void setParameter(int paramIdx, PreparedStatement statement)
+                throws SQLException {
                 getConnection().getSql2o().getQuirks().setParameter(statement, paramIdx, value);
             }
         });
@@ -347,19 +394,24 @@ public class Query implements AutoCloseable {
      *
      * @throws NullPointerException if values parameter is null
      */
-    public Query addParameter(String name, final Object ... values) {
-        if(values == null) {
+    public Query addParameter(String name, final Object... values) {
+        if (values == null) {
             throw new NullPointerException("Array parameter cannot be null");
         }
 
         addParameterInternal(name, new ParameterSetter(values.length) {
             @Override
-            public void setParameter(int paramIdx, PreparedStatement statement) throws SQLException {
-                if(values.length == 0) {
-                    getConnection().getSql2o().getQuirks().setParameter(statement, paramIdx, (Object) null);
+            public void setParameter(int paramIdx, PreparedStatement statement)
+                throws SQLException {
+                if (values.length == 0) {
+                    getConnection().getSql2o()
+                        .getQuirks()
+                        .setParameter(statement, paramIdx, (Object) null);
                 } else {
                     for (Object value : values) {
-                        getConnection().getSql2o().getQuirks().setParameter(statement, paramIdx++, value);
+                        getConnection().getSql2o()
+                            .getQuirks()
+                            .setParameter(statement, paramIdx++, value);
                     }
                 }
             }
@@ -372,29 +424,32 @@ public class Query implements AutoCloseable {
      * See {@link #addParameter(String, Object...)} for details
      */
     public Query addParameter(String name, final Collection<?> values) {
-        if(values == null) {
+        if (values == null) {
             throw new NullPointerException("Array parameter cannot be null");
         }
 
         return addParameter(name, values.toArray());
     }
 
+    // ------------------------------------------------
+    // -------------------- Execute -------------------
+    // ------------------------------------------------
+
     public Query bind(final Object pojo) {
         Class clazz = pojo.getClass();
-        Map<String, PojoIntrospector.ReadableProperty> propertyMap = PojoIntrospector.readableProperties(clazz);
+        Map<String, PojoIntrospector.ReadableProperty> propertyMap =
+            PojoIntrospector.readableProperties(clazz);
         for (PojoIntrospector.ReadableProperty property : propertyMap.values()) {
             try {
-                if( this.getParamNameToIdxMap().containsKey(property.name)) {
+                if (this.getParamNameToIdxMap().containsKey(property.name)) {
 
-                    @SuppressWarnings("unchecked")
-                    final Class<Object> type = (Class<Object>) property.type;
+                    @SuppressWarnings("unchecked") final Class<Object> type =
+                        (Class<Object>) property.type;
                     this.addParameter(property.name, type, property.get(pojo));
                 }
-            }
-            catch(IllegalArgumentException ex) {
+            } catch (IllegalArgumentException ex) {
                 logger.debug("Ignoring Illegal Arguments", ex);
-            }
-            catch(IllegalAccessException | InvocationTargetException ex) {
+            } catch (IllegalAccessException | InvocationTargetException ex) {
                 throw new RuntimeException(ex);
             }
         }
@@ -402,7 +457,7 @@ public class Query implements AutoCloseable {
     }
 
     public void close() {
-        if(preparedStatement != null) {
+        if (preparedStatement != null) {
             connection.removeStatement(preparedStatement);
             try {
                 this.getQuirks().closeStatement(preparedStatement);
@@ -412,10 +467,6 @@ public class Query implements AutoCloseable {
         }
     }
 
-    // ------------------------------------------------
-    // -------------------- Execute -------------------
-    // ------------------------------------------------
-
     // visible for testing
     PreparedStatement buildPreparedStatement() {
         return buildPreparedStatement(true);
@@ -423,31 +474,39 @@ public class Query implements AutoCloseable {
 
     private PreparedStatement buildPreparedStatement(boolean allowArrayParameters) {
         // array parameter handling
-        parsedQuery = ArrayParameters.updateQueryAndParametersIndexes(parsedQuery, paramNameToIdxMap, parameters, allowArrayParameters);
+        parsedQuery =
+            ArrayParameters.updateQueryAndParametersIndexes(parsedQuery, paramNameToIdxMap,
+                parameters, allowArrayParameters);
 
         // prepare statement creation
-        if(preparedStatement == null) {
+        if (preparedStatement == null) {
             try {
-                if (columnNames != null && columnNames.length > 0){
-                    preparedStatement = connection.getJdbcConnection().prepareStatement(parsedQuery, columnNames);
+                if (columnNames != null && columnNames.length > 0) {
+                    preparedStatement =
+                        connection.getJdbcConnection().prepareStatement(parsedQuery, columnNames);
                 } else if (returnGeneratedKeys) {
-                    preparedStatement = connection.getJdbcConnection().prepareStatement(parsedQuery, Statement.RETURN_GENERATED_KEYS);
+                    preparedStatement = connection.getJdbcConnection()
+                        .prepareStatement(parsedQuery, Statement.RETURN_GENERATED_KEYS);
                 } else {
-                    preparedStatement = connection.getJdbcConnection().prepareStatement(parsedQuery);
+                    preparedStatement =
+                        connection.getJdbcConnection().prepareStatement(parsedQuery);
                 }
-            } catch(SQLException ex) {
-                throw new Sql2oException(String.format("Error preparing statement - %s", ex.getMessage()), ex);
+            } catch (SQLException ex) {
+                throw new Sql2oException(
+                    String.format("Error preparing statement - %s", ex.getMessage()), ex);
             }
             connection.registerStatement(preparedStatement);
         }
 
         // parameters assignation to query
-        for(Map.Entry<String, ParameterSetter> parameter : parameters.entrySet()) {
+        for (Map.Entry<String, ParameterSetter> parameter : parameters.entrySet()) {
             for (int paramIdx : paramNameToIdxMap.get(parameter.getKey())) {
                 try {
                     parameter.getValue().setParameter(paramIdx, preparedStatement);
                 } catch (SQLException e) {
-                    throw new RuntimeException(String.format("Error adding parameter '%s' - %s", parameter.getKey(), e.getMessage()), e);
+                    throw new RuntimeException(
+                        String.format("Error adding parameter '%s' - %s", parameter.getKey(),
+                            e.getMessage()), e);
                 }
             }
         }
@@ -455,69 +514,6 @@ public class Query implements AutoCloseable {
         parameters.clear();
 
         return preparedStatement;
-    }
-
-    /**
-     * Iterable {@link java.sql.ResultSet} that wraps {@link PojoResultSetIterator}.
-     */
-    private abstract class ResultSetIterableBase<T> implements ResultSetIterable<T> {
-        private long start;
-        private long afterExecQuery;
-        protected ResultSet rs;
-
-        boolean autoCloseConnection = false;
-
-        public ResultSetIterableBase() {
-            try {
-                start = System.currentTimeMillis();
-                logExecution();
-                rs = buildPreparedStatement().executeQuery();
-                afterExecQuery = System.currentTimeMillis();
-            }
-            catch (SQLException ex) {
-                throw new Sql2oException("Database error: " + ex.getMessage(), ex);
-            }
-        }
-
-        @Override
-        public void close() {
-            try {
-                if (rs != null) {
-                    rs.close();
-
-                    // log the query
-                    long afterClose = System.currentTimeMillis();
-                    logger.debug("total: {} ms, execution: {} ms, reading and parsing: {} ms; executed [{}]", new Object[]{
-                            afterClose - start,
-                            afterExecQuery-start,
-                            afterClose - afterExecQuery,
-                            name
-                    });
-
-                    rs = null;
-                }
-            }
-            catch (SQLException ex) {
-                throw new Sql2oException("Error closing ResultSet.", ex);
-            }
-            finally {
-                if (this.isAutoCloseConnection()){
-                    connection.close();
-                } else {
-                    closeConnectionIfNecessary();
-                }
-            }
-        }
-
-        @Override
-        public boolean isAutoCloseConnection() {
-            return this.autoCloseConnection;
-        }
-
-        @Override
-        public void setAutoCloseConnection(boolean autoCloseConnection) {
-            this.autoCloseConnection = autoCloseConnection;
-        }
     }
 
     /**
@@ -529,14 +525,15 @@ public class Query implements AutoCloseable {
      * @return iterable results
      */
     public <T> ResultSetIterable<T> executeAndFetchLazy(final Class<T> returnType) {
-        final ResultSetHandlerFactory<T> resultSetHandlerFactory = newResultSetHandlerFactory(returnType);
+        final ResultSetHandlerFactory<T> resultSetHandlerFactory =
+            newResultSetHandlerFactory(returnType);
         return executeAndFetchLazy(resultSetHandlerFactory);
     }
 
     private <T> ResultSetHandlerFactory<T> newResultSetHandlerFactory(Class<T> returnType) {
         final Quirks quirks = getConnection().getSql2o().getQuirks();
         ResultSetHandlerFactoryBuilder builder = getResultSetHandlerFactoryBuilder();
-        if(builder==null) builder=new DefaultResultSetHandlerFactoryBuilder();
+        if (builder == null) builder = new DefaultResultSetHandlerFactoryBuilder();
         builder.setAutoDeriveColumnNames(this.autoDeriveColumnNames);
         builder.setCaseSensitive(this.caseSensitive);
         builder.setColumnMappings(this.getColumnMappings());
@@ -553,11 +550,13 @@ public class Query implements AutoCloseable {
      * @param resultSetHandlerFactory factory to provide ResultSetHandler
      * @return iterable results
      */
-    public <T> ResultSetIterable<T> executeAndFetchLazy(final ResultSetHandlerFactory<T> resultSetHandlerFactory) {
+    public <T> ResultSetIterable<T> executeAndFetchLazy(
+        final ResultSetHandlerFactory<T> resultSetHandlerFactory) {
         final Quirks quirks = getConnection().getSql2o().getQuirks();
         return new ResultSetIterableBase<T>() {
             public Iterator<T> iterator() {
-                return new PojoResultSetIterator<>(rs, isCaseSensitive(), quirks, resultSetHandlerFactory);
+                return new PojoResultSetIterator<>(rs, isCaseSensitive(), quirks,
+                    resultSetHandlerFactory);
             }
         };
     }
@@ -570,28 +569,21 @@ public class Query implements AutoCloseable {
      * @param resultSetHandler ResultSetHandler
      * @return iterable results
      */
-    public <T> ResultSetIterable<T> executeAndFetchLazy(final ResultSetHandler<T> resultSetHandler) {
+    public <T> ResultSetIterable<T> executeAndFetchLazy(
+        final ResultSetHandler<T> resultSetHandler) {
         final ResultSetHandlerFactory<T> factory = newResultSetHandlerFactory(resultSetHandler);
         return executeAndFetchLazy(factory);
     }
 
-    private static  <T> ResultSetHandlerFactory<T> newResultSetHandlerFactory(final ResultSetHandler<T> resultSetHandler) {
-        return new ResultSetHandlerFactory<T>() {
-            public ResultSetHandler<T> newResultSetHandler(ResultSetMetaData resultSetMetaData) throws SQLException {
-                return resultSetHandler;
-            }
-        };
-    }
-
-    public <T> List<T> executeAndFetch(Class<T> returnType){
+    public <T> List<T> executeAndFetch(Class<T> returnType) {
         return executeAndFetch(newResultSetHandlerFactory(returnType));
     }
 
-    public <T> List<T> executeAndFetch(ResultSetHandler<T> resultSetHandler){
+    public <T> List<T> executeAndFetch(ResultSetHandler<T> resultSetHandler) {
         return executeAndFetch(newResultSetHandlerFactory(resultSetHandler));
     }
 
-    public <T> List<T> executeAndFetch(ResultSetHandlerFactory<T> factory){
+    public <T> List<T> executeAndFetch(ResultSetHandlerFactory<T> factory) {
         List<T> list = new ArrayList<>();
 
         try (ResultSetIterable<T> iterable = executeAndFetchLazy(factory)) {
@@ -603,17 +595,17 @@ public class Query implements AutoCloseable {
         return list;
     }
 
-    public <T> T executeAndFetchFirst(Class<T> returnType){
+    public <T> T executeAndFetchFirst(Class<T> returnType) {
         return executeAndFetchFirst(newResultSetHandlerFactory(returnType));
     }
 
-    public <T> T executeAndFetchFirst(ResultSetHandler<T> resultSetHandler){
+    public <T> T executeAndFetchFirst(ResultSetHandler<T> resultSetHandler) {
         return executeAndFetchFirst(newResultSetHandlerFactory(resultSetHandler));
     }
 
-    public <T> T executeAndFetchFirst(ResultSetHandlerFactory<T> resultSetHandlerFactory){
+    public <T> T executeAndFetchFirst(ResultSetHandlerFactory<T> resultSetHandlerFactory) {
 
-        try (ResultSetIterable<T> iterable = executeAndFetchLazy(resultSetHandlerFactory))  {
+        try (ResultSetIterable<T> iterable = executeAndFetchLazy(resultSetHandlerFactory)) {
             Iterator<T> iterator = iterable.iterator();
             return iterator.hasNext() ? iterator.next() : null;
         }
@@ -624,7 +616,8 @@ public class Query implements AutoCloseable {
 
         lt.setRows(new ResultSetIterableBase<Row>() {
             public Iterator<Row> iterator() {
-                return new TableResultSetIterator(rs, isCaseSensitive(), getConnection().getSql2o().getQuirks(), lt);
+                return new TableResultSetIterator(rs, isCaseSensitive(),
+                    getConnection().getSql2o().getQuirks(), lt);
             }
         });
 
@@ -634,38 +627,34 @@ public class Query implements AutoCloseable {
     public Table executeAndFetchTable() {
         List<Row> rows = new ArrayList<>();
 
-        try  (LazyTable lt =  executeAndFetchTableLazy()){
+        try (LazyTable lt = executeAndFetchTableLazy()) {
             for (Row item : lt.rows()) {
                 rows.add(item);
             }
-             // lt==null is always false
+            // lt==null is always false
             return new Table(lt.getName(), rows, lt.columns());
-
         }
-
     }
 
-    public Connection executeUpdate(){
+    public Connection executeUpdate() {
         long start = System.currentTimeMillis();
-        try{
+        try {
             logExecution();
             PreparedStatement statement = buildPreparedStatement();
             this.connection.setResult(statement.executeUpdate());
             this.connection.setKeys(this.returnGeneratedKeys ? statement.getGeneratedKeys() : null);
             connection.setCanGetKeys(this.returnGeneratedKeys);
-        }
-        catch(SQLException ex){
+        } catch (SQLException ex) {
             this.connection.onException();
             throw new Sql2oException("Error in executeUpdate, " + ex.getMessage(), ex);
-        }
-        finally {
+        } finally {
             closeConnectionIfNecessary();
         }
 
         long end = System.currentTimeMillis();
-        logger.debug("total: {} ms; executed update [{}]", new Object[]{
-                end - start,
-                this.getName() == null ? "No name" : this.getName()
+        logger.debug("total: {} ms; executed update [{}]", new Object[] {
+            end - start,
+            this.getName() == null ? "No name" : this.getName()
         });
 
         return this.connection;
@@ -680,7 +669,7 @@ public class Query implements AutoCloseable {
             if (rs.next()) {
                 Object o = getQuirks().getRSVal(rs, 1);
                 long end = System.currentTimeMillis();
-                logger.debug("total: {} ms; executed scalar [{}]", new Object[]{
+                logger.debug("total: {} ms; executed scalar [{}]", new Object[] {
                     end - start,
                     this.getName() == null ? "No name" : this.getName()
                 });
@@ -688,21 +677,20 @@ public class Query implements AutoCloseable {
             } else {
                 return null;
             }
-
         } catch (SQLException e) {
             this.connection.onException();
-            throw new Sql2oException("Database error occurred while running executeScalar: " + e.getMessage(), e);
+            throw new Sql2oException(
+                "Database error occurred while running executeScalar: " + e.getMessage(), e);
         } finally {
             closeConnectionIfNecessary();
         }
-
     }
 
     private Quirks getQuirks() {
         return this.connection.getSql2o().getQuirks();
     }
 
-    public <V> V executeScalar(Class<V> returnType){
+    public <V> V executeScalar(Class<V> returnType) {
         try {
             Converter<V> converter;
             //noinspection unchecked
@@ -711,11 +699,12 @@ public class Query implements AutoCloseable {
             logExecution();
             return executeScalar(converter);
         } catch (ConverterException e) {
-            throw new Sql2oException("Error occured while converting value from database to type " + returnType, e);
+            throw new Sql2oException(
+                "Error occured while converting value from database to type " + returnType, e);
         }
     }
 
-    public <V> V executeScalar(Converter<V> converter){
+    public <V> V executeScalar(Converter<V> converter) {
         try {
             //noinspection unchecked
             return converter.convert(executeScalar());
@@ -724,9 +713,7 @@ public class Query implements AutoCloseable {
         }
     }
 
-
-
-    public <T> List<T> executeScalarList(final Class<T> returnType){
+    public <T> List<T> executeScalarList(final Class<T> returnType) {
         return executeAndFetch(newScalarResultSetHandler(returnType));
     }
 
@@ -741,7 +728,9 @@ public class Query implements AutoCloseable {
                     try {
                         return (converter.convert(value));
                     } catch (ConverterException e) {
-                        throw new Sql2oException("Error occurred while converting value from database to type " + returnType, e);
+                        throw new Sql2oException(
+                            "Error occurred while converting value from database to type "
+                                + returnType, e);
                     }
                 }
             };
@@ -751,6 +740,10 @@ public class Query implements AutoCloseable {
     }
 
     /************** batch stuff *******************/
+
+    public int getMaxBatchRecords() {
+        return this.maxBatchRecords;
+    }
 
     /**
      * Sets the number of batched commands this Query allows to be added
@@ -765,16 +758,12 @@ public class Query implements AutoCloseable {
      *
      * @throws IllegalArgumentException Thrown if the value is negative.
      */
-    public Query setMaxBatchRecords(int maxBatchRecords){
-        if (maxBatchRecords < 0){
+    public Query setMaxBatchRecords(int maxBatchRecords) {
+        if (maxBatchRecords < 0) {
             throw new IllegalArgumentException("maxBatchRecords should be a nonnegative value");
         }
         this.maxBatchRecords = maxBatchRecords;
         return this;
-    }
-
-    public int getMaxBatchRecords(){
-        return this.maxBatchRecords;
     }
 
     /**
@@ -788,8 +777,9 @@ public class Query implements AutoCloseable {
      * @return True if maxBatchRecords is set and there are unexecuted batched commands or
      * maxBatchRecords is not set
      */
-    public boolean isExplicitExecuteBatchRequired(){
-        return (this.maxBatchRecords > 0 && this.currentBatchRecords > 0) || (this.maxBatchRecords == 0);
+    public boolean isExplicitExecuteBatchRequired() {
+        return (this.maxBatchRecords > 0 && this.currentBatchRecords > 0) || (this.maxBatchRecords
+            == 0);
     }
 
     /**
@@ -802,11 +792,11 @@ public class Query implements AutoCloseable {
      * The current number of batched commands is accessible via the <code>getCurrentBatchRecords()</code>
      * method.
      */
-    public Query addToBatch(){
+    public Query addToBatch() {
         try {
             buildPreparedStatement(false).addBatch();
-            if (this.maxBatchRecords > 0){
-                if(++this.currentBatchRecords % this.maxBatchRecords == 0) {
+            if (this.maxBatchRecords > 0) {
+                if (++this.currentBatchRecords % this.maxBatchRecords == 0) {
                     this.executeBatch();
                 }
             }
@@ -827,7 +817,7 @@ public class Query implements AutoCloseable {
      * The current number of batched commands is accessible via the <code>getCurrentBatchRecords()</code>
      * method.
      */
-    public <A> List<A> addToBatchGetKeys(Class<A> klass){
+    public <A> List<A> addToBatchGetKeys(Class<A> klass) {
         this.addToBatch();
 
         if (this.currentBatchRecords == 0) {
@@ -848,21 +838,21 @@ public class Query implements AutoCloseable {
                 connection.setKeys(this.returnGeneratedKeys ? statement.getGeneratedKeys() : null);
                 connection.setCanGetKeys(this.returnGeneratedKeys);
             } catch (SQLException sqlex) {
-                throw new Sql2oException("Error while trying to fetch generated keys from database. If you are not expecting any generated keys, fix this error by setting the fetchGeneratedKeys parameter in the createQuery() method to 'false'", sqlex);
+                throw new Sql2oException(
+                    "Error while trying to fetch generated keys from database. If you are not expecting any generated keys, fix this error by setting the fetchGeneratedKeys parameter in the createQuery() method to 'false'",
+                    sqlex);
             }
-        }
-        catch (Throwable e) {
+        } catch (Throwable e) {
             this.connection.onException();
             throw new Sql2oException("Error while executing batch operation: " + e.getMessage(), e);
-        }
-        finally {
+        } finally {
             closeConnectionIfNecessary();
         }
 
         long end = System.currentTimeMillis();
-        logger.debug("total: {} ms; executed batch [{}]", new Object[]{
-                end - start,
-                this.getName() == null ? "No name" : this.getName()
+        logger.debug("total: {} ms; executed batch [{}]", new Object[] {
+            end - start,
+            this.getName() == null ? "No name" : this.getName()
         });
 
         return this.connection;
@@ -871,20 +861,19 @@ public class Query implements AutoCloseable {
     /*********** column mapping ****************/
 
     public Map<String, String> getColumnMappings() {
-        if (this.isCaseSensitive()){
+        if (this.isCaseSensitive()) {
             return this.caseSensitiveColumnMappings;
-        }
-        else{
+        } else {
             return this.columnMappings;
         }
     }
 
-    public Query setColumnMappings(Map<String, String> mappings){
+    public Query setColumnMappings(Map<String, String> mappings) {
 
         this.caseSensitiveColumnMappings = new HashMap<>();
         this.columnMappings = new HashMap<>();
 
-        for (Map.Entry<String,String> entry : mappings.entrySet()){
+        for (Map.Entry<String, String> entry : mappings.entrySet()) {
             this.caseSensitiveColumnMappings.put(entry.getKey(), entry.getValue());
             this.columnMappings.put(entry.getKey().toLowerCase(), entry.getValue().toLowerCase());
         }
@@ -892,7 +881,7 @@ public class Query implements AutoCloseable {
         return this;
     }
 
-    public Query addColumnMapping(String columnName, String propertyName){
+    public Query addColumnMapping(String columnName, String propertyName) {
         this.caseSensitiveColumnMappings.put(columnName, propertyName);
         this.columnMappings.put(columnName.toLowerCase(), propertyName.toLowerCase());
 
@@ -901,31 +890,19 @@ public class Query implements AutoCloseable {
 
     /************** private stuff ***************/
 
-    private void closeConnectionIfNecessary(){
-        try{
-            if (connection.autoClose){
+    private void closeConnectionIfNecessary() {
+        try {
+            if (connection.autoClose) {
                 connection.close();
             }
-        }
-        catch (Exception ex){
+        } catch (Exception ex) {
             throw new Sql2oException("Error while attempting to close connection", ex);
         }
     }
 
     private void logExecution() {
-        logger.debug("Executing query:{}{}", new Object[]{ System.lineSeparator(), this.parsedQuery } );
-    }
-
-    // from http://stackoverflow.com/questions/5606338/cast-primitive-type-array-into-object-array-in-java
-    private static Object[] toObjectArray(Object val){
-        if (val instanceof Object[])
-            return (Object[])val;
-        int arrayLength = java.lang.reflect.Array.getLength(val);
-        Object[] outputArray = new Object[arrayLength];
-        for(int i = 0; i < arrayLength; ++i){
-            outputArray[i] = java.lang.reflect.Array.get(val, i);
-        }
-        return outputArray;
+        logger.debug("Executing query:{}{}",
+            new Object[] {System.lineSeparator(), this.parsedQuery});
     }
 
     static abstract class ParameterSetter {
@@ -943,4 +920,64 @@ public class Query implements AutoCloseable {
         abstract void setParameter(int paramIdx, PreparedStatement statement) throws SQLException;
     }
 
+    /**
+     * Iterable {@link java.sql.ResultSet} that wraps {@link PojoResultSetIterator}.
+     */
+    private abstract class ResultSetIterableBase<T> implements ResultSetIterable<T> {
+        protected ResultSet rs;
+        boolean autoCloseConnection = false;
+        private long start;
+        private long afterExecQuery;
+
+        public ResultSetIterableBase() {
+            try {
+                start = System.currentTimeMillis();
+                logExecution();
+                rs = buildPreparedStatement().executeQuery();
+                afterExecQuery = System.currentTimeMillis();
+            } catch (SQLException ex) {
+                throw new Sql2oException("Database error: " + ex.getMessage(), ex);
+            }
+        }
+
+        @Override
+        public void close() {
+            try {
+                if (rs != null) {
+                    rs.close();
+
+                    // log the query
+                    long afterClose = System.currentTimeMillis();
+                    logger.debug(
+                        "total: {} ms, execution: {} ms, reading and parsing: {} ms; executed [{}]",
+                        new Object[] {
+                            afterClose - start,
+                            afterExecQuery - start,
+                            afterClose - afterExecQuery,
+                            name
+                        });
+
+                    rs = null;
+                }
+            } catch (SQLException ex) {
+                throw new Sql2oException("Error closing ResultSet.", ex);
+            } finally {
+                if (this.isAutoCloseConnection()) {
+                    connection.close();
+                } else {
+                    closeConnectionIfNecessary();
+                }
+            }
+        }
+
+        @Override
+        public boolean isAutoCloseConnection() {
+            return this.autoCloseConnection;
+        }
+
+        @Override
+        public void setAutoCloseConnection(boolean autoCloseConnection) {
+            this.autoCloseConnection = autoCloseConnection;
+        }
+    }
 }

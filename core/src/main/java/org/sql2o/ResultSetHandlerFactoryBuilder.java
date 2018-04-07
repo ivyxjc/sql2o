@@ -1,8 +1,7 @@
 package org.sql2o;
 
-import org.sql2o.quirks.Quirks;
-
 import java.util.Map;
+import org.sql2o.quirks.Quirks;
 
 /**
  * Created with IntelliJ IDEA.

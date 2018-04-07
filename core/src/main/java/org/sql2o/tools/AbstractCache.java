@@ -12,10 +12,11 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
  * Date: 4/6/14
  * Time: 10:35 PM
  */
-public abstract class AbstractCache<K,V,E> {
-    private final Map<K,V> map;
+public abstract class AbstractCache<K, V, E> {
+    private final Map<K, V> map;
     private final Lock rl;
     private final Lock wl;
+
     /***
      * @param map - allows to define your own map implementation
      */
@@ -26,11 +27,11 @@ public abstract class AbstractCache<K,V,E> {
         wl = rrwl.writeLock();
     }
 
-    public AbstractCache(){
+    public AbstractCache() {
         this(new HashMap<K, V>());
     }
 
-    public V get(K key,E param){
+    public V get(K key, E param) {
         V value;
 
         try {
@@ -40,14 +41,14 @@ public abstract class AbstractCache<K,V,E> {
         } finally {
             rl.unlock();
         }
-        if(value!=null) return value;
+        if (value != null) return value;
 
         try {
             wl.lock();
             value = map.get(key);
-            if(value==null){
+            if (value == null) {
                 value = evaluate(key, param);
-                map.put(key,value);
+                map.put(key, value);
             }
         } finally {
             wl.unlock();
@@ -56,5 +57,4 @@ public abstract class AbstractCache<K,V,E> {
     }
 
     protected abstract V evaluate(K key, E param);
-
 }

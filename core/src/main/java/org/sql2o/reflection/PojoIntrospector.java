@@ -1,12 +1,15 @@
 package org.sql2o.reflection;
 
-import org.sql2o.tools.AbstractCache;
-
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Member;
 import java.lang.reflect.Method;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import org.sql2o.tools.AbstractCache;
 
 import static java.beans.Introspector.decapitalize;
 import static java.lang.reflect.Modifier.isPrivate;
@@ -23,12 +26,12 @@ import static java.lang.reflect.Modifier.isStatic;
 @SuppressWarnings("UnusedDeclaration")
 public class PojoIntrospector {
     private static final AbstractCache<Class<?>, Map<String, ReadableProperty>, Void> rpCache =
-            new AbstractCache<Class<?>, Map<String, ReadableProperty>, Void>() {
-                @Override
-                protected Map<String, ReadableProperty> evaluate(Class<?> key, Void param) {
-                    return collectReadableProperties(key);
-                }
-            };
+        new AbstractCache<Class<?>, Map<String, ReadableProperty>, Void>() {
+            @Override
+            protected Map<String, ReadableProperty> evaluate(Class<?> key, Void param) {
+                return collectReadableProperties(key);
+            }
+        };
 
     private static Map<String, ReadableProperty> collectReadableProperties(Class<?> cls) {
         Map<String, ReadableProperty> map = new HashMap<String, ReadableProperty>();
@@ -55,7 +58,8 @@ public class PojoIntrospector {
             m.setAccessible(true);
             ReadableProperty rp = new ReadableProperty(propName, returnType) {
                 @Override
-                public Object get(Object instance) throws InvocationTargetException, IllegalAccessException {
+                public Object get(Object instance)
+                    throws IllegalAccessException {
                     return m.get(instance);
                 }
             };
@@ -87,7 +91,8 @@ public class PojoIntrospector {
             m.setAccessible(true);
             ReadableProperty rp = new ReadableProperty(propName, returnType) {
                 @Override
-                public Object get(Object instance) throws InvocationTargetException, IllegalAccessException {
+                public Object get(Object instance)
+                    throws InvocationTargetException, IllegalAccessException {
                     return m.invoke(instance, (Object[]) null);
                 }
             };
@@ -113,6 +118,7 @@ public class PojoIntrospector {
             this.type = type;
         }
 
-        public abstract Object get(Object instance) throws InvocationTargetException, IllegalAccessException;
+        public abstract Object get(Object instance)
+            throws InvocationTargetException, IllegalAccessException;
     }
 }

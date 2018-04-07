@@ -1,17 +1,13 @@
 package org.sql2o.converters;
 
+import java.sql.Timestamp;
+import java.util.Date;
 import oracle.sql.DATE;
 import oracle.sql.TIMESTAMP;
 import org.joda.time.DateTime;
 import org.joda.time.LocalDate;
 import org.joda.time.LocalTime;
 import org.junit.Test;
-import org.sql2o.quirks.OracleQuirks;
-
-import javax.xml.bind.annotation.adapters.HexBinaryAdapter;
-import java.sql.Timestamp;
-import java.util.Date;
-import java.util.UUID;
 
 import static org.junit.Assert.assertEquals;
 
@@ -21,11 +17,11 @@ import static org.junit.Assert.assertEquals;
 public class OracleConverterTest {
 
     @Test
-    public void testDateConversion( ) throws ConverterException {
+    public void testDateConversion() throws ConverterException {
 
         // assert java.sql.Date.
         long millis = LocalDate.now().toDateTimeAtStartOfDay().getMillis();
-        java.sql.Date sqlDate = new java.sql.Date( millis );
+        java.sql.Date sqlDate = new java.sql.Date(millis);
         TIMESTAMP oracleTimestamp = new TIMESTAMP(sqlDate);
         Date convertedDate = Convert.getConverterIfExists(Date.class).convert(oracleTimestamp);
 
@@ -39,12 +35,12 @@ public class OracleConverterTest {
         assertEquals(origDate, convertedDate);
     }
 
-
     @Test
     public void testDateTimeConverter() throws ConverterException {
         DateTime d = DateTime.now();
         TIMESTAMP oracleTimestamp = new TIMESTAMP(new Timestamp(d.getMillis()));
-        DateTime convertedDateTime = Convert.getConverterIfExists(DateTime.class).convert(oracleTimestamp);
+        DateTime convertedDateTime =
+            Convert.getConverterIfExists(DateTime.class).convert(oracleTimestamp);
 
         assertEquals(d, convertedDateTime);
     }
@@ -68,5 +64,4 @@ public class OracleConverterTest {
 
         assertEquals(lt, convertedTime);
     }
-
 }

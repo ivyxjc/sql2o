@@ -1,25 +1,19 @@
 package org.sql2o.extensions.postgres;
 
+import java.util.UUID;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.sql2o.Connection;
 import org.sql2o.Query;
-import org.sql2o.Sql2o;
-import org.sql2o.converters.UUIDConverter;
 import org.sql2o.data.Row;
 import org.sql2o.data.Table;
-import org.sql2o.quirks.PostgresQuirks;
-
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.UUID;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 
 /**
  * Created with IntelliJ IDEA.
@@ -38,16 +32,17 @@ public class PostgresTest extends PostgresTestSupport {
     }
 
     @Test
-    public void testIssue10StatementsOnPostgres_noTransaction(){
+    public void testIssue10StatementsOnPostgres_noTransaction() {
 
         try {
             try (Connection connection = sql2o.open()) {
-                connection.createQuery("create table test_table(id SERIAL, val varchar(20))").executeUpdate();
+                connection.createQuery("create table test_table(id SERIAL, val varchar(20))")
+                    .executeUpdate();
             }
 
             try (Connection connection = sql2o.open()) {
                 Long key = connection.createQuery("insert into test_table (val) values(:val)", true)
-                                     .addParameter("val", "something").executeUpdate().getKey(Long.class);
+                    .addParameter("val", "something").executeUpdate().getKey(Long.class);
                 assertNotNull(key);
                 assertTrue(key > 0);
 
@@ -58,9 +53,7 @@ public class PostgresTest extends PostgresTestSupport {
                 Row resultRow = resultTable.rows().get(0);
                 assertThat(resultRow.getLong("id"), equalTo(key));
                 assertThat(resultRow.getString("val"), is("something"));
-
             }
-
         } finally {
             try (final Connection connection = sql2o.open();
                  final Query query = connection.createQuery("drop table if exists test_table")) {
@@ -72,14 +65,16 @@ public class PostgresTest extends PostgresTestSupport {
     @Test
     public void testIssue10_StatementsOnPostgres_withTransaction() {
 
-
-        try(final Connection connection = sql2o.beginTransaction()){
+        try (final Connection connection = sql2o.beginTransaction()) {
 
             String createTableSql = "create table test_table(id SERIAL, val varchar(20))";
             connection.createQuery(createTableSql).executeUpdate();
 
             String insertSql = "insert into test_table (val) values(:val)";
-            Long key = connection.createQuery(insertSql, true).addParameter("val", "something").executeUpdate().getKey(Long.class);
+            Long key = connection.createQuery(insertSql, true)
+                .addParameter("val", "something")
+                .executeUpdate()
+                .getKey(Long.class);
             assertNotNull(key);
             assertTrue(key > 0);
 
@@ -92,13 +87,11 @@ public class PostgresTest extends PostgresTestSupport {
             assertThat(resultRow.getString("val"), is("something"));
             // always rollback, as this is only for tesing purposes.
             connection.rollback();
-
         }
-
     }
 
     @Test
-    public void testGetKeyOnSequence(){
+    public void testGetKeyOnSequence() {
         Connection connection = null;
 
         try {
@@ -107,10 +100,12 @@ public class PostgresTest extends PostgresTestSupport {
             String createSequenceSql = "create sequence testseq";
             connection.createQuery(createSequenceSql).executeUpdate();
 
-            String createTableSql = "create table test_seq_table (id integer primary key, val varchar(20))";
+            String createTableSql =
+                "create table test_seq_table (id integer primary key, val varchar(20))";
             connection.createQuery(createTableSql).executeUpdate();
 
-            String insertSql = "insert into test_seq_table(id, val) values (nextval('testseq'), 'something')";
+            String insertSql =
+                "insert into test_seq_table(id, val) values (nextval('testseq'), 'something')";
             Long key = connection.createQuery(insertSql, true).executeUpdate().getKey(Long.class);
 
             assertThat(key, equalTo(1L));
@@ -131,7 +126,8 @@ public class PostgresTest extends PostgresTestSupport {
         try {
             connection = sql2o.beginTransaction();
 
-            String createTableSql = "create table test_serial_table (id serial primary key, val varchar(20))";
+            String createTableSql =
+                "create table test_serial_table (id serial primary key, val varchar(20))";
             connection.createQuery(createTableSql).executeUpdate();
 
             String insertSql = "insert into test_serial_table(val) values ('something')";
@@ -174,9 +170,5 @@ public class PostgresTest extends PostgresTestSupport {
                 connection.rollback();
             }
         }
-
     }
-
-
-
 }

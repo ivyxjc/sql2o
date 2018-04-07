@@ -5,9 +5,9 @@ package org.sql2o.tools;
  */
 public final class ClassUtils {
 
-//    private static ClassLoader getClassLoader() {
-//        return Thread.currentThread().getContextClassLoader();
-//    }
+    //    private static ClassLoader getClassLoader() {
+    //        return Thread.currentThread().getContextClassLoader();
+    //    }
 
     /**
      * Check whether the {@link Class} identified by the supplied name is present.
@@ -22,8 +22,7 @@ public final class ClassUtils {
             Class.forName(className);
             // getClassLoader().loadClass(className);
             return true;
-        }
-        catch (Throwable ex) {
+        } catch (Throwable ex) {
             return false;
         }
     }

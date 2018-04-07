@@ -10,6 +10,7 @@
 
 package org.sql2o.extensions.postgres;
 
+import java.util.UUID;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
@@ -17,9 +18,9 @@ import org.sql2o.Connection;
 import org.sql2o.Query;
 import org.sql2o.data.Table;
 
-import java.util.UUID;
-
-import static org.hamcrest.CoreMatchers.*;
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.nullValue;
 import static org.junit.Assert.assertThat;
 
 /**
@@ -32,31 +33,31 @@ public class UUIDTest extends PostgresTestSupport {
         logger.info("starting UUIDTest");
     }
 
-
     @Test
-    public void testUUID() throws Exception {
+    public void testUUID() {
 
         try (Connection connection = sql2o.beginTransaction()) {
-            connection.createQuery("create table uuidtest(id uuid primary key, val uuid null)").executeUpdate();
+            connection.createQuery("create table uuidtest(id uuid primary key, val uuid null)")
+                .executeUpdate();
 
             UUID uuid1 = UUID.randomUUID();
             UUID uuid2 = UUID.randomUUID();
             UUID uuid3 = UUID.randomUUID();
             UUID uuid4 = null;
 
-            Query insQuery = connection.createQuery("insert into uuidtest(id, val) values (:id, :val)");
+            Query insQuery =
+                connection.createQuery("insert into uuidtest(id, val) values (:id, :val)");
             insQuery.addParameter("id", uuid1).addParameter("val", uuid2).executeUpdate();
             insQuery.addParameter("id", uuid3).addParameter("val", uuid4).executeUpdate();
 
             Table table = connection.createQuery("select * from uuidtest").executeAndFetchTable();
 
-            assertThat((UUID)table.rows().get(0).getObject("id"), is(equalTo(uuid1)));
-            assertThat((UUID)table.rows().get(0).getObject("val"), is(equalTo(uuid2)));
-            assertThat((UUID)table.rows().get(1).getObject("id"), is(equalTo(uuid3)));
+            assertThat((UUID) table.rows().get(0).getObject("id"), is(equalTo(uuid1)));
+            assertThat((UUID) table.rows().get(0).getObject("val"), is(equalTo(uuid2)));
+            assertThat((UUID) table.rows().get(1).getObject("id"), is(equalTo(uuid3)));
             assertThat(table.rows().get(1).getObject("val"), is(nullValue()));
 
             connection.rollback();
         }
-
     }
 }

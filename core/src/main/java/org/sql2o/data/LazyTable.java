@@ -1,8 +1,7 @@
 package org.sql2o.data;
 
-import org.sql2o.ResultSetIterable;
-
 import java.util.List;
+import org.sql2o.ResultSetIterable;
 
 /**
  * @author aldenquimby@gmail.com

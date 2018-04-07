@@ -8,6 +8,7 @@ import java.util.Date;
  */
 public abstract class AbstractDateConverter<E extends Date> implements Converter<E> {
     private final Class<E> classOfDate;
+
     protected AbstractDateConverter(Class<E> classOfDate) {
         this.classOfDate = classOfDate;
     }
@@ -16,29 +17,30 @@ public abstract class AbstractDateConverter<E extends Date> implements Converter
 
     @SuppressWarnings("unchecked")
     public E convert(Object val) throws ConverterException {
-        if (val == null){
+        if (val == null) {
             return null;
         }
 
-        if (classOfDate.isInstance(val)){
+        if (classOfDate.isInstance(val)) {
             return (E) val;
         }
 
-        if(val instanceof java.util.Date){
+        if (val instanceof java.util.Date) {
             return fromMilliseconds(((Date) val).getTime());
         }
 
-        if (val instanceof Number){
+        if (val instanceof Number) {
             return fromMilliseconds(((Number) val).longValue());
         }
 
-        throw new ConverterException("Cannot convert type " + val.getClass().toString() + " to java.util.Date");
+        throw new ConverterException(
+            "Cannot convert type " + val.getClass().toString() + " to java.util.Date");
     }
 
     public Object toDatabaseParam(Date val) {
-        if(val==null) return null;
+        if (val == null) return null;
         return (val instanceof Timestamp)
-                ? (Timestamp) val
-                :new Timestamp(val.getTime());
+            ? (Timestamp) val
+            : new Timestamp(val.getTime());
     }
 }

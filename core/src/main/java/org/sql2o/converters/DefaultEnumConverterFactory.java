@@ -13,15 +13,18 @@ public class DefaultEnumConverterFactory implements EnumConverterFactory {
                     return null;
                 }
                 try {
-                    if (val instanceof String){
-                        return (E)Enum.valueOf(enumType, val.toString());
-                    } else if (val instanceof Number){
-                        return enumType.getEnumConstants()[((Number)val).intValue()];
+                    if (val instanceof String) {
+                        return Enum.valueOf(enumType, val.toString());
+                    } else if (val instanceof Number) {
+                        return enumType.getEnumConstants()[((Number) val).intValue()];
                     }
                 } catch (Throwable t) {
-                    throw new ConverterException("Error converting value '" + val.toString() + "' to " + enumType.getName(), t);
+                    throw new ConverterException(
+                        "Error converting value '" + val.toString() + "' to " + enumType.getName(),
+                        t);
                 }
-                throw new ConverterException("Cannot convert type '" + val.getClass().getName() + "' to an Enum");
+                throw new ConverterException(
+                    "Cannot convert type '" + val.getClass().getName() + "' to an Enum");
             }
 
             public Object toDatabaseParam(Enum val) {

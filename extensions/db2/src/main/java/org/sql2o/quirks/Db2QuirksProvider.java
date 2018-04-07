@@ -22,8 +22,8 @@ public class Db2QuirksProvider implements QuirksProvider {
     @Override
     public boolean isUsableForUrl(String url) {
         return url.startsWith("jdbc:db2:")
-                || url.startsWith("jdbc:db2j:net:")
-                || url.startsWith("jdbc:db2os390");
+            || url.startsWith("jdbc:db2j:net:")
+            || url.startsWith("jdbc:db2os390");
     }
 
     @Override

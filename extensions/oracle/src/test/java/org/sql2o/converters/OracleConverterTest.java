@@ -1,10 +1,9 @@
 package org.sql2o.converters;
 
+import java.util.UUID;
+import javax.xml.bind.annotation.adapters.HexBinaryAdapter;
 import org.junit.Test;
 import org.sql2o.quirks.OracleQuirks;
-
-import javax.xml.bind.annotation.adapters.HexBinaryAdapter;
-import java.util.UUID;
 
 import static org.junit.Assert.assertEquals;
 
@@ -19,7 +18,7 @@ public class OracleConverterTest {
         OracleQuirks orclQuirks = new OracleQuirks();
         Converter<UUID> uuidConverter = new OracleUUIDConverter();
 
-        byte[] rawUuid = (byte[])uuidConverter.toDatabaseParam(uuid);
+        byte[] rawUuid = (byte[]) uuidConverter.toDatabaseParam(uuid);
 
         UUID reconvertedUuid = uuidConverter.convert(rawUuid);
 
@@ -29,14 +28,12 @@ public class OracleConverterTest {
         // sure everything is done correct.
         String hex = new HexBinaryAdapter().marshal(rawUuid);
         String hexUuid = String.format("%s-%s-%s-%s-%s",
-                hex.substring(0,8),
-                hex.substring(8,12),
-                hex.substring(12, 16),
-                hex.substring(16, 20),
-                hex.substring(20)).toLowerCase();
-
+            hex.substring(0, 8),
+            hex.substring(8, 12),
+            hex.substring(12, 16),
+            hex.substring(16, 20),
+            hex.substring(20)).toLowerCase();
 
         assertEquals(uuid.toString(), hexUuid);
     }
-
 }

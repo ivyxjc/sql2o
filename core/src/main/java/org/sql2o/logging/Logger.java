@@ -5,8 +5,11 @@ package org.sql2o.logging;
  */
 public interface Logger {
 
-    public void debug(String format, Object[] argArray);
-    public void debug(String format, Object arg);
-    public void warn(String format);
-    public void warn(String format, Throwable exception);
+    void debug(String format, Object[] argArray);
+
+    void debug(String format, Object arg);
+
+    void warn(String format);
+
+    void warn(String format, Throwable exception);
 }

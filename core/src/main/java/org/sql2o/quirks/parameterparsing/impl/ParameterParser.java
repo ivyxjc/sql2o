@@ -7,7 +7,7 @@ import java.util.Map;
 /**
  * Created by lars on 22.09.2014.
  */
-public class ParameterParser implements CharParser{
+public class ParameterParser implements CharParser {
 
     private final Map<String, List<Integer>> parameterMap;
     int paramIdx = 1;
@@ -18,7 +18,8 @@ public class ParameterParser implements CharParser{
 
     @Override
     public boolean canParse(char c, String sql, int idx) {
-        return sql.length() > idx + 1 && c == ':' && Character.isJavaIdentifierStart( sql.charAt(idx + 1) ) && sql.charAt(idx-1) != ':';
+        return sql.length() > idx + 1 && c == ':' && Character.isJavaIdentifierStart(
+            sql.charAt(idx + 1)) && sql.charAt(idx - 1) != ':';
     }
 
     @Override

@@ -1,12 +1,11 @@
 package org.sql2o;
 
-import org.sql2o.quirks.Quirks;
-
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
+import org.sql2o.quirks.Quirks;
 
 /**
  * Iterator for a {@link java.sql.ResultSet}. Tricky part here is getting {@link #hasNext()}
@@ -20,6 +19,10 @@ public abstract class ResultSetIteratorBase<T> implements Iterator<T> {
     protected boolean isCaseSensitive;
     protected Quirks quirks;
     protected ResultSetMetaData meta;
+    // fields needed to properly implement
+    private ResultSetValue<T> next;
+    // keep track of next item in case hasNext() is called multiple times
+    private boolean resultSetFinished; // used to note when result set exhausted
 
     public ResultSetIteratorBase(ResultSet rs, boolean isCaseSensitive, Quirks quirks) {
         this.rs = rs;
@@ -27,15 +30,10 @@ public abstract class ResultSetIteratorBase<T> implements Iterator<T> {
         this.quirks = quirks;
         try {
             meta = rs.getMetaData();
-        }
-        catch(SQLException ex) {
+        } catch (SQLException ex) {
             throw new Sql2oException("Database error: " + ex.getMessage(), ex);
         }
     }
-
-    // fields needed to properly implement
-    private ResultSetValue<T> next; // keep track of next item in case hasNext() is called multiple times
-    private boolean resultSetFinished; // used to note when result set exhausted
 
     public boolean hasNext() {
         // check if we already fetched next item
@@ -78,17 +76,16 @@ public abstract class ResultSetIteratorBase<T> implements Iterator<T> {
         throw new UnsupportedOperationException();
     }
 
-    private ResultSetValue<T> safeReadNext()
-    {
+    private ResultSetValue<T> safeReadNext() {
         try {
-            if (!rs.next())
+            if (!rs.next()) {
                 return null;
+            }
 
             @SuppressWarnings("unchecked")
             ResultSetValue<T> resultSetValue = new <T>ResultSetValue(readNext());
             return resultSetValue;
-        }
-        catch (SQLException ex) {
+        } catch (SQLException ex) {
             throw new Sql2oException("Database error: " + ex.getMessage(), ex);
         }
     }
@@ -102,7 +99,7 @@ public abstract class ResultSetIteratorBase<T> implements Iterator<T> {
     private final class ResultSetValue<T> {
         public final T value;
 
-        public ResultSetValue(T value){
+        public ResultSetValue(T value) {
             this.value = value;
         }
     }

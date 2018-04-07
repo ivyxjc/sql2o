@@ -1,12 +1,18 @@
 package org.sql2o;
 
+import java.sql.Connection;
+import javax.sql.DataSource;
 import org.junit.Test;
 import org.sql2o.quirks.NoQuirks;
 
-import javax.sql.DataSource;
-import java.sql.Connection;
-
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.anyInt;
+import static org.mockito.Mockito.atLeastOnce;
+import static org.mockito.Mockito.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
+import static org.mockito.Mockito.when;
 
 /**
  * Test to check if the autoCommit state has been reset upon close

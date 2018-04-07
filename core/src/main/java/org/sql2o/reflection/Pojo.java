@@ -15,14 +15,14 @@ public class Pojo {
     private PojoMetadata metadata;
     private boolean caseSensitive;
     private Object object;
-    
-    public Pojo(PojoMetadata metadata, boolean caseSensitive, Object object){
+
+    public Pojo(PojoMetadata metadata, boolean caseSensitive, Object object) {
         this.caseSensitive = caseSensitive;
         this.metadata = metadata;
         this.object = object;
     }
-    
-    public Pojo(PojoMetadata metadata, boolean caseSensitive){
+
+    public Pojo(PojoMetadata metadata, boolean caseSensitive) {
         this.caseSensitive = caseSensitive;
         this.metadata = metadata;
         ObjectConstructor objectConstructor = metadata.getObjectConstructor();
@@ -30,7 +30,7 @@ public class Pojo {
     }
 
     @SuppressWarnings("unchecked")
-    public Object getProperty(String propertyPath, Quirks quirks){
+    public Object getProperty(String propertyPath, Quirks quirks) {
         // String.split uses RegularExpression
         // this is overkill for every column for every row
         int index = propertyPath.indexOf('.');
@@ -42,28 +42,33 @@ public class Pojo {
 
             getter = metadata.getPropertyGetter(substring);
 
-            String newPath = propertyPath.substring(index+1);
+            String newPath = propertyPath.substring(index + 1);
 
             Object subValue = this.metadata.getValueOfProperty(substring, this.object);
 
-            if (subValue == null){
+            if (subValue == null) {
                 try {
                     subValue = getter.getType().newInstance();
                 } catch (InstantiationException e) {
-                    throw new Sql2oException("Could not instantiate a new instance of class "+ getter.getType().toString(), e);
+                    throw new Sql2oException(
+                        "Could not instantiate a new instance of class " + getter.getType()
+                            .toString(), e);
                 } catch (IllegalAccessException e) {
-                    throw new Sql2oException("Could not instantiate a new instance of class "+ getter.getType().toString(), e);
+                    throw new Sql2oException(
+                        "Could not instantiate a new instance of class " + getter.getType()
+                            .toString(), e);
                 }
 
                 return getter.getProperty(this.object);
             }
 
-            PojoMetadata subMetadata = new PojoMetadata(getter.getType(), this.caseSensitive, this.metadata.isAutoDeriveColumnNames(), this.metadata.getColumnMappings(), this.metadata.throwOnMappingFailure);
+            PojoMetadata subMetadata = new PojoMetadata(getter.getType(), this.caseSensitive,
+                this.metadata.isAutoDeriveColumnNames(), this.metadata.getColumnMappings(),
+                this.metadata.throwOnMappingFailure);
             Pojo subPojo = new Pojo(subMetadata, this.caseSensitive, subValue);
 
             return subPojo.getProperty(newPath, quirks);
-        }
-        else{
+        } else {
             getter = metadata.getPropertyGetter(propertyPath);
 
             Converter converter;
@@ -71,67 +76,75 @@ public class Pojo {
             try {
                 converter = throwIfNull(getter.getType(), quirks.converterOf(getter.getType()));
             } catch (ConverterException e) {
-                throw new Sql2oException("Cannot convert column " + propertyPath + " to type " + getter.getType(), e);
+                throw new Sql2oException(
+                    "Cannot convert column " + propertyPath + " to type " + getter.getType(), e);
             }
 
             try {
                 return converter.convert(getter.getProperty(this.object));
             } catch (ConverterException e) {
-                throw new Sql2oException("Error trying to convert column " + propertyPath + " to type " + getter.getType(), e);
+                throw new Sql2oException("Error trying to convert column "
+                    + propertyPath
+                    + " to type "
+                    + getter.getType(), e);
             }
         }
     }
 
     @SuppressWarnings("unchecked")
-    public void setProperty(String propertyPath, Object value, Quirks quirks){
+    public void setProperty(String propertyPath, Object value, Quirks quirks) {
         // String.split uses RegularExpression
         // this is overkill for every column for every row
         int index = propertyPath.indexOf('.');
         Setter setter;
-        if (index > 0){
+        if (index > 0) {
             final String substring = propertyPath.substring(0, index);
             setter = metadata.getPropertySetter(substring);
-            String newPath = propertyPath.substring(index+1);
-            
+            String newPath = propertyPath.substring(index + 1);
+
             Object subValue = this.metadata.getValueOfProperty(substring, this.object);
-            if (subValue == null){
+            if (subValue == null) {
                 try {
                     subValue = setter.getType().newInstance();
                 } catch (InstantiationException e) {
-                    throw new Sql2oException("Could not instantiate a new instance of class "+ setter.getType().toString(), e);
+                    throw new Sql2oException(
+                        "Could not instantiate a new instance of class " + setter.getType()
+                            .toString(), e);
                 } catch (IllegalAccessException e) {
-                    throw new Sql2oException("Could not instantiate a new instance of class "+ setter.getType().toString(), e);
+                    throw new Sql2oException(
+                        "Could not instantiate a new instance of class " + setter.getType()
+                            .toString(), e);
                 }
                 setter.setProperty(this.object, subValue);
             }
-            
-            PojoMetadata subMetadata = new PojoMetadata(setter.getType(), this.caseSensitive, this.metadata.isAutoDeriveColumnNames(), this.metadata.getColumnMappings(), this.metadata.throwOnMappingFailure);
+
+            PojoMetadata subMetadata = new PojoMetadata(setter.getType(), this.caseSensitive,
+                this.metadata.isAutoDeriveColumnNames(), this.metadata.getColumnMappings(),
+                this.metadata.throwOnMappingFailure);
             Pojo subPojo = new Pojo(subMetadata, this.caseSensitive, subValue);
             subPojo.setProperty(newPath, value, quirks);
-        }
-        else{
+        } else {
             setter = metadata.getPropertySetter(propertyPath);
             Converter converter;
             try {
                 converter = throwIfNull(setter.getType(), quirks.converterOf(setter.getType()));
             } catch (ConverterException e) {
-                throw new Sql2oException("Cannot convert column " + propertyPath + " to type " + setter.getType(), e);
+                throw new Sql2oException(
+                    "Cannot convert column " + propertyPath + " to type " + setter.getType(), e);
             }
 
             try {
-                setter.setProperty(this.object, converter.convert( value ));
+                setter.setProperty(this.object, converter.convert(value));
             } catch (ConverterException e) {
-                throw new Sql2oException("Error trying to convert column " + propertyPath + " to type " + setter.getType(), e);
+                throw new Sql2oException("Error trying to convert column "
+                    + propertyPath
+                    + " to type "
+                    + setter.getType(), e);
             }
         }
-        
-        
     }
 
-
-
-    public Object getObject(){
+    public Object getObject() {
         return this.object;
     }
-    
 }

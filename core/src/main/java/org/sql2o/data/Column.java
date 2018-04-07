@@ -4,7 +4,7 @@ package org.sql2o.data;
  * Represents a result set column
  */
 public class Column {
-    
+
     private String name;
     private Integer index;
     private String type;

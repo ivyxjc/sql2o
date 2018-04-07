@@ -1,15 +1,15 @@
 package org.sql2o.tools;
 
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import junit.framework.TestCase;
 import org.sql2o.quirks.parameterparsing.SqlParameterParsingStrategy;
 import org.sql2o.quirks.parameterparsing.impl.DefaultSqlParameterParsingStrategy;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import static org.hamcrest.CoreMatchers.*;
-import static org.hamcrest.MatcherAssert.*;
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 /**
  * User: dimzon
@@ -18,7 +18,8 @@ import static org.hamcrest.MatcherAssert.*;
  */
 public class NamedParameterTest extends TestCase {
 
-    private SqlParameterParsingStrategy sqlParameterParsingStrategy = new DefaultSqlParameterParsingStrategy();
+    private SqlParameterParsingStrategy sqlParameterParsingStrategy =
+        new DefaultSqlParameterParsingStrategy();
 
     /*
      A type cast specifies a conversion from one data type to another.
@@ -26,7 +27,7 @@ public class NamedParameterTest extends TestCase {
      CAST ( expression AS type )
      expression::type
      */
-    public void testPostgresSqlCastSyntax() throws Exception {
+    public void testPostgresSqlCastSyntax() {
         Map<String, List<Integer>> map = new HashMap<String, List<Integer>>();
         String preparedQuery = sqlParameterParsingStrategy.parseSql("select :foo", map);
         assertEquals("select ?", preparedQuery);
@@ -39,7 +40,7 @@ public class NamedParameterTest extends TestCase {
         assertEquals("select (?)::uuid", preparedQuery);
     }
 
-    public void testStringConstant() throws Exception {
+    public void testStringConstant() {
         Map<String, List<Integer>> map = new HashMap<String, List<Integer>>();
         String preparedQuery = sqlParameterParsingStrategy.parseSql("select ':foo'", map);
         assertEquals("select ':foo'", preparedQuery);

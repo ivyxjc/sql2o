@@ -1,10 +1,9 @@
 package org.sql2o;
 
+import java.util.List;
+import javax.sql.DataSource;
 import junit.framework.TestCase;
 import org.h2.jdbcx.JdbcConnectionPool;
-
-import javax.sql.DataSource;
-import java.util.List;
 
 /**
  * Created with IntelliJ IDEA.
@@ -22,33 +21,50 @@ public class Sql2oDataSourceTest extends TestCase {
     private String pass = "";
 
     @Override
-    protected void setUp() throws Exception {
+    protected void setUp() {
         DataSource ds = JdbcConnectionPool.create(url, user, pass);
 
         sql2o = new Sql2o(ds);
     }
 
-    public void testExecuteAndFetchWithNulls(){
+    public void testExecuteAndFetchWithNulls() {
         String sql =
-                "create table testExecWithNullsTbl (" +
-                        "id int identity primary key, " +
-                        "text varchar(255), " +
-                        "aNumber int, " +
-                        "aLongNumber bigint)";
+            "create table testExecWithNullsTbl (" +
+                "id int identity primary key, " +
+                "text varchar(255), " +
+                "aNumber int, " +
+                "aLongNumber bigint)";
         sql2o.createQuery(sql).setName("testExecuteAndFetchWithNulls").executeUpdate();
 
         sql2o.runInTransaction(new StatementRunnable() {
-            public void run(Connection connection, Object argument) throws Throwable {
-                Query insQuery = connection.createQuery("insert into testExecWithNullsTbl (text, aNumber, aLongNumber) values(:text, :number, :lnum)");
-                insQuery.addParameter("text", "some text").addParameter("number", 2).addParameter("lnum", 10L).executeUpdate();
-                insQuery.addParameter("text", "some text").addParameter("number", (Integer)null).addParameter("lnum", 10L).executeUpdate();
-                insQuery.addParameter("text", (String)null).addParameter("number", 21).addParameter("lnum", (Long)null).executeUpdate();
-                insQuery.addParameter("text", "some text").addParameter("number", 1221).addParameter("lnum", 10).executeUpdate();
-                insQuery.addParameter("text", "some text").addParameter("number", 2311).addParameter("lnum", 12).executeUpdate();
+            public void run(Connection connection, Object argument) {
+                Query insQuery = connection.createQuery(
+                    "insert into testExecWithNullsTbl (text, aNumber, aLongNumber) values(:text, :number, :lnum)");
+                insQuery.addParameter("text", "some text")
+                    .addParameter("number", 2)
+                    .addParameter("lnum", 10L)
+                    .executeUpdate();
+                insQuery.addParameter("text", "some text")
+                    .addParameter("number", (Integer) null)
+                    .addParameter("lnum", 10L)
+                    .executeUpdate();
+                insQuery.addParameter("text", (String) null)
+                    .addParameter("number", 21)
+                    .addParameter("lnum", (Long) null)
+                    .executeUpdate();
+                insQuery.addParameter("text", "some text")
+                    .addParameter("number", 1221)
+                    .addParameter("lnum", 10)
+                    .executeUpdate();
+                insQuery.addParameter("text", "some text")
+                    .addParameter("number", 2311)
+                    .addParameter("lnum", 12)
+                    .executeUpdate();
             }
         });
 
-        List<Entity> fetched = sql2o.createQuery("select * from testExecWithNullsTbl").executeAndFetch(Entity.class);
+        List<Entity> fetched =
+            sql2o.createQuery("select * from testExecWithNullsTbl").executeAndFetch(Entity.class);
 
         assertTrue(fetched.size() == 5);
         assertNull(fetched.get(2).text);
@@ -59,7 +75,5 @@ public class Sql2oDataSourceTest extends TestCase {
 
         assertNull(fetched.get(2).aLongNumber);
         assertNotNull(fetched.get(3).aLongNumber);
-
-
     }
 }

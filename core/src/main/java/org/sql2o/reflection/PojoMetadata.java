@@ -1,10 +1,5 @@
 package org.sql2o.reflection;
 
-import org.sql2o.Sql2oException;
-import org.sql2o.tools.AbstractCache;
-import org.sql2o.tools.UnderscoreToCamelCase;
-
-import javax.persistence.Column;
 import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -12,6 +7,10 @@ import java.lang.reflect.Modifier;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import javax.persistence.Column;
+import org.sql2o.Sql2oException;
+import org.sql2o.tools.AbstractCache;
+import org.sql2o.tools.UnderscoreToCamelCase;
 
 /**
  * Stores metadata for a POJO.
@@ -20,14 +19,25 @@ public class PojoMetadata {
 
     private static final Cache caseSensitiveFalse = new Cache();
     private static final Cache caseSensitiveTrue = new Cache();
+    public final boolean throwOnMappingFailure;
     private final PropertyAndFieldInfo propertyInfo;
     private final Map<String, String> columnMappings;
     private final FactoryFacade factoryFacade = FactoryFacade.getInstance();
-
     private boolean caseSensitive;
     private boolean autoDeriveColumnNames;
-    public final boolean throwOnMappingFailure;
     private Class clazz;
+
+    public PojoMetadata(Class clazz, boolean caseSensitive, boolean autoDeriveColumnNames,
+        Map<String, String> columnMappings, boolean throwOnMappingError) {
+        this.caseSensitive = caseSensitive;
+        this.autoDeriveColumnNames = autoDeriveColumnNames;
+        this.clazz = clazz;
+        this.columnMappings =
+            columnMappings == null ? Collections.<String, String>emptyMap() : columnMappings;
+
+        this.propertyInfo = getPropertyInfoThroughCache();
+        this.throwOnMappingFailure = throwOnMappingError;
+    }
 
     public boolean isCaseSensitive() {
         return caseSensitive;
@@ -45,11 +55,10 @@ public class PojoMetadata {
         PojoMetadata that = (PojoMetadata) o;
 
         return autoDeriveColumnNames == that.autoDeriveColumnNames
-                && caseSensitive == that.caseSensitive
-                && clazz.equals(that.clazz)
-                && columnMappings.equals(that.columnMappings)
-                && propertyInfo.equals(that.propertyInfo);
-
+            && caseSensitive == that.caseSensitive
+            && clazz.equals(that.clazz)
+            && columnMappings.equals(that.columnMappings)
+            && propertyInfo.equals(that.propertyInfo);
     }
 
     @Override
@@ -59,26 +68,15 @@ public class PojoMetadata {
         return result;
     }
 
-    public PojoMetadata(Class clazz, boolean caseSensitive, boolean autoDeriveColumnNames, Map<String, String> columnMappings, boolean throwOnMappingError) {
-        this.caseSensitive = caseSensitive;
-        this.autoDeriveColumnNames = autoDeriveColumnNames;
-        this.clazz = clazz;
-        this.columnMappings = columnMappings == null ? Collections.<String,String>emptyMap() : columnMappings;
-
-        this.propertyInfo = getPropertyInfoThroughCache();
-        this.throwOnMappingFailure = throwOnMappingError;
-
-    }
-
     public ObjectConstructor getObjectConstructor() {
         return propertyInfo.objectConstructor;
     }
 
     private PropertyAndFieldInfo getPropertyInfoThroughCache() {
         return (caseSensitive
-                ? caseSensitiveTrue
-                : caseSensitiveFalse)
-                .get(clazz, this);
+            ? caseSensitiveTrue
+            : caseSensitiveFalse)
+            .get(clazz, this);
     }
 
     private PropertyAndFieldInfo initializePropertyInfo() {
@@ -94,20 +92,20 @@ public class PojoMetadata {
         } catch (ClassNotFoundException e) {
             // javax.persistence.Column is not in the classpath
         }
-        
+
         Class theClass = clazz;
         ObjectConstructor objectConstructor = factoryFacade.newConstructor(theClass);
         do {
             for (Field f : theClass.getDeclaredFields()) {
-                if(Modifier.isStatic(f.getModifiers())) {
+                if (Modifier.isStatic(f.getModifiers())) {
                     continue;
                 }
                 String propertyName = readAnnotatedColumnName(f, isJpaColumnInClasspath);
-                if(propertyName == null) {
+                if (propertyName == null) {
                     propertyName = f.getName();
                 }
                 propertyName = caseSensitive ? propertyName : propertyName.toLowerCase();
-                
+
                 propertyGetters.put(propertyName, factoryFacade.newGetter(f));
                 propertySetters.put(propertyName, factoryFacade.newSetter(f));
                 fields.put(propertyName, f);
@@ -119,7 +117,8 @@ public class PojoMetadata {
                 if (m.getName().startsWith("get")) {
                     String propertyName = m.getName().substring(3);
                     if (caseSensitive) {
-                        propertyName = propertyName.substring(0, 1).toLowerCase() + propertyName.substring(1);
+                        propertyName =
+                            propertyName.substring(0, 1).toLowerCase() + propertyName.substring(1);
                     } else {
                         propertyName = propertyName.toLowerCase();
                     }
@@ -129,11 +128,12 @@ public class PojoMetadata {
 
                 if (m.getName().startsWith("set") && m.getParameterTypes().length == 1) {
                     String propertyName = readAnnotatedColumnName(m, isJpaColumnInClasspath);
-                    if(propertyName == null) {
+                    if (propertyName == null) {
                         propertyName = m.getName().substring(3);
                     }
                     if (caseSensitive) {
-                        propertyName = propertyName.substring(0, 1).toLowerCase() + propertyName.substring(1);
+                        propertyName =
+                            propertyName.substring(0, 1).toLowerCase() + propertyName.substring(1);
                     } else {
                         propertyName = propertyName.toLowerCase();
                     }
@@ -144,8 +144,8 @@ public class PojoMetadata {
             theClass = theClass.getSuperclass();
         } while (!theClass.equals(Object.class));
 
-        return new PropertyAndFieldInfo(propertyGetters, propertySetters, fields, objectConstructor);
-
+        return new PropertyAndFieldInfo(propertyGetters, propertySetters, fields,
+            objectConstructor);
     }
 
     public Map<String, String> getColumnMappings() {
@@ -159,9 +159,13 @@ public class PojoMetadata {
         if (getter != null) {
             return getter;
         } else {
-            String errorMsg = "Property with name '" + propertyName + "' not found on class " + this.clazz.toString();
+            String errorMsg = "Property with name '"
+                + propertyName
+                + "' not found on class "
+                + this.clazz.toString();
             if (this.caseSensitive) {
-                errorMsg += " (You have turned on case sensitive property search. Is this intentional?)";
+                errorMsg +=
+                    " (You have turned on case sensitive property search. Is this intentional?)";
             }
             throw new Sql2oException(errorMsg);
         }
@@ -190,9 +194,13 @@ public class PojoMetadata {
         if (setter != null) {
             return setter;
         } else {
-            String errorMsg = "Property with name '" + propertyName + "' not found on class " + this.clazz.toString();
+            String errorMsg = "Property with name '"
+                + propertyName
+                + "' not found on class "
+                + this.clazz.toString();
             if (this.caseSensitive) {
-                errorMsg += " (You have turned on case sensitive property search. Is this intentional?)";
+                errorMsg +=
+                    " (You have turned on case sensitive property search. Is this intentional?)";
             }
             throw new Sql2oException(errorMsg);
         }
@@ -223,15 +231,18 @@ public class PojoMetadata {
 
         return getter.getProperty(object);
     }
-    
+
     /**
      * Try to read the {@link javax.persistence.Column} annotation and return the name of the column.
      * Returns null if no {@link javax.persistence.Column} annotation is present or if the name of the column is empty
      */
-    private String readAnnotatedColumnName(AnnotatedElement classMember, boolean isJpaColumnInClasspath) {
-        if(isJpaColumnInClasspath) {
+    private String readAnnotatedColumnName(AnnotatedElement classMember,
+        boolean isJpaColumnInClasspath) {
+        if (isJpaColumnInClasspath) {
             Column columnInformation = classMember.getAnnotation(Column.class);
-            if(columnInformation != null && columnInformation.name() != null && !columnInformation.name().isEmpty()) {
+            if (columnInformation != null
+                && columnInformation.name() != null
+                && !columnInformation.name().isEmpty()) {
                 return columnInformation.name();
             }
         }

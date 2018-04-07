@@ -10,5 +10,4 @@ import java.sql.SQLException;
 public interface ConnectionSource {
 
     java.sql.Connection getConnection() throws SQLException;
-
 }

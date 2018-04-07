@@ -13,7 +13,7 @@ public class OracleUUIDConverter implements Converter<UUID> {
     @Override
     public UUID convert(Object val) throws ConverterException {
         if (val instanceof byte[]) {
-            ByteBuffer bb = ByteBuffer.wrap((byte[])val);
+            ByteBuffer bb = ByteBuffer.wrap((byte[]) val);
 
             long mostSignigcant = bb.getLong();
             long leastSignificant = bb.getLong();

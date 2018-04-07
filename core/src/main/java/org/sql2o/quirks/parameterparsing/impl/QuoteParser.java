@@ -18,8 +18,7 @@ public class QuoteParser implements CharParser {
             parsedSql.append(c);
             if (++idx == length) return idx;
             c = sql.charAt(idx);
-
-        } while(c != quoteChar);
+        } while (c != quoteChar);
         parsedSql.append(c);
         return idx;
     }

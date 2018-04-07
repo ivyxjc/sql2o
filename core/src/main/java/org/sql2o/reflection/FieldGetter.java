@@ -1,8 +1,7 @@
 package org.sql2o.reflection;
 
-import org.sql2o.Sql2oException;
-
 import java.lang.reflect.Field;
+import org.sql2o.Sql2oException;
 
 /**
  * used internally to get property values directly from the field. Only used if no getter method is found.
@@ -22,7 +21,9 @@ public class FieldGetter implements Getter {
         try {
             return this.field.get(obj);
         } catch (IllegalAccessException e) {
-            throw new Sql2oException("could not get field " + this.field.getName() + " on class " + obj.getClass().toString(), e);
+            throw new Sql2oException(
+                "could not get field " + this.field.getName() + " on class " + obj.getClass()
+                    .toString(), e);
         }
     }
 

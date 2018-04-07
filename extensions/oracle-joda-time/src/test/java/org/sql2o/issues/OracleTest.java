@@ -10,26 +10,19 @@
 
 package org.sql2o.issues;
 
+import java.sql.Driver;
+import java.sql.DriverManager;
+import java.util.Date;
 import org.joda.time.DateTime;
 import org.joda.time.LocalDate;
 import org.junit.Ignore;
 import org.junit.Test;
-import org.sql2o.Connection;
-import org.sql2o.Query;
 import org.sql2o.Sql2o;
-import org.sql2o.Sql2oException;
 import org.sql2o.quirks.OracleQuirks;
-
-import java.sql.Driver;
-import java.sql.DriverManager;
-import java.util.Date;
-import java.util.UUID;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
-import static org.junit.Assert.fail;
 
 /**
  * Created with IntelliJ IDEA.
@@ -44,13 +37,15 @@ public class OracleTest {
 
     public OracleTest() {
         try {
-            Class oracleDriverClass = this.getClass().getClassLoader().loadClass("oracle.jdbc.driver.OracleDriver");
-            DriverManager.registerDriver((Driver)oracleDriverClass.newInstance());
+            Class oracleDriverClass =
+                this.getClass().getClassLoader().loadClass("oracle.jdbc.driver.OracleDriver");
+            DriverManager.registerDriver((Driver) oracleDriverClass.newInstance());
         } catch (Throwable t) {
             throw new RuntimeException(t);
         }
 
-        this.sql2o = new Sql2o("jdbc:oracle:thin:@//localhost:1521/orcl", "test", "test", new OracleQuirks());
+        this.sql2o = new Sql2o("jdbc:oracle:thin:@//localhost:1521/orcl", "test", "test",
+            new OracleQuirks());
     }
 
     /**
@@ -62,8 +57,6 @@ public class OracleTest {
      * at org.sql2o.converters.DateConverter.convert(DateConverter.java:25)
      * at org.sql2o.converters.DateConverter.convert(DateConverter.java:14)
      * at org.sql2o.reflection.Pojo.setProperty(Pojo.java:84)
-     *
-     *
      */
     @Test @Ignore
     public void testForIssue8OracleTimestamps() {
@@ -77,5 +70,4 @@ public class OracleTest {
         assertThat(new DateTime(dateVal).toLocalDate(), is(equalTo(new LocalDate())));
         assertThat(dateTimeVal.toLocalDate(), is(equalTo(new LocalDate())));
     }
-
 }

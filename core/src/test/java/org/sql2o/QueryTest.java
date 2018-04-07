@@ -1,12 +1,14 @@
 package org.sql2o;
 
+import java.sql.SQLException;
+import javax.sql.DataSource;
 import org.junit.Test;
 
-import javax.sql.DataSource;
-import java.sql.SQLException;
-
 import static org.mockito.Matchers.anyString;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 /**
  * Created by lars on 25.01.15.
@@ -16,6 +18,7 @@ public class QueryTest {
     /**
      * Test issue 161, fetch trigger generated keys from Oracle.
      * Fixed by calling java.sql.Connection.prepareStatement(String, String[]) overload.
+     *
      * @throws SQLException
      */
     @Test
@@ -31,8 +34,6 @@ public class QueryTest {
         Connection con = sql2o.open();
         con.createQuery("sql", "colname").buildPreparedStatement();
 
-        verify(jdbcCon, times(1)).prepareStatement(anyString(), new String[]{anyString()});
-
+        verify(jdbcCon, times(1)).prepareStatement(anyString(), new String[] {anyString()});
     }
-
 }

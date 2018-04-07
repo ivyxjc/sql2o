@@ -14,8 +14,8 @@ public class InputStreamConverter extends ConverterBase<ByteArrayInputStream> {
         if (val == null) return null;
 
         try {
-            return new ByteArrayInputStream( new ByteArrayConverter().convert(val) );
-        } catch( ConverterException e) {
+            return new ByteArrayInputStream(new ByteArrayConverter().convert(val));
+        } catch (ConverterException e) {
             throw new ConverterException("Error converting Blob to InputSteam");
         }
     }

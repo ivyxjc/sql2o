@@ -10,16 +10,15 @@
 
 package org.sql2o.issues;
 
+import java.sql.Driver;
+import java.sql.DriverManager;
+import java.util.UUID;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.sql2o.Connection;
 import org.sql2o.Query;
 import org.sql2o.Sql2o;
 import org.sql2o.quirks.OracleQuirks;
-
-import java.sql.Driver;
-import java.sql.DriverManager;
-import java.util.UUID;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
@@ -37,13 +36,15 @@ public class OracleTest {
 
     public OracleTest() {
         try {
-            Class oracleDriverClass = this.getClass().getClassLoader().loadClass("oracle.jdbc.driver.OracleDriver");
-            DriverManager.registerDriver((Driver)oracleDriverClass.newInstance());
+            Class oracleDriverClass =
+                this.getClass().getClassLoader().loadClass("oracle.jdbc.driver.OracleDriver");
+            DriverManager.registerDriver((Driver) oracleDriverClass.newInstance());
         } catch (Throwable t) {
             throw new RuntimeException(t);
         }
 
-        this.sql2o = new Sql2o("jdbc:oracle:thin:@localhost:1521:XE", "test", "test", new OracleQuirks());
+        this.sql2o =
+            new Sql2o("jdbc:oracle:thin:@localhost:1521:XE", "test", "test", new OracleQuirks());
     }
 
     @Test @Ignore
@@ -66,7 +67,6 @@ public class OracleTest {
 
         try {
 
-
             try (Connection connection = sql2o.open()) {
                 connection.createQuery(ddl).executeUpdate();
 
@@ -81,8 +81,7 @@ public class OracleTest {
                 assertEquals(uuid1, uuid1FromDb);
                 assertEquals(uuid2, uuid2FromDb);
             }
-
-        } catch(Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
             fail("test failed. Exception");
         } finally {
@@ -90,52 +89,50 @@ public class OracleTest {
                 con.createQuery("drop table testUUID").executeUpdate();
             }
         }
-
     }
 
-
     // test is weird. Some versions of Oracle returns a rowid instead of the generated sequence value.
-//    @Test
-//    public void testForIssue13ProblemWithGetGeneratedKeys() {
-//
-//        try{
-//            sql2o.createQuery("drop sequence fooseq", false).executeUpdate();
-//        } catch(Sql2oException ex) {
-//            // ignore errors, if objects doesn't exists already.
-//            int debug = 0;
-//        }
-//
-//        try{
-//            sql2o.createQuery("drop table testtable", false).executeUpdate();
-//        } catch(Sql2oException e) {
-//            // ignore errors, if objects doesn't exists already.
-//            int debug = 0;
-//        }
-//
-//
-//        sql2o.createQuery("create sequence fooseq", false).executeUpdate();
-//        sql2o.createQuery("create table testtable(id integer primary key, val varchar2(30))", false).executeUpdate();
-//
-//        Connection connection = null;
-//        try {
-//            connection = sql2o.beginTransaction();
-//
-//            String insertSomethingSql = "insert into testtable (id, val) values(fooseq.nextval, :val)";
-//            Long generatedKey = connection.createQuery(insertSomethingSql, true).addParameter("val", "foo").executeUpdate().getKey(Long.class);
-//
-//            Long fetchedKey = connection.createQuery("select id from test_tbl").executeScalar(Long.class);
-//
-//            assertEquals(generatedKey, fetchedKey);
-//        } finally {
-//            if (connection != null) {
-//                connection.rollback();
-//            }
-//
-//        }
-//
-//        sql2o.createQuery("drop sequence fooseq", false);
-//        sql2o.createQuery("drop table testtable");
-//
-//
-//    }
+    //    @Test
+    //    public void testForIssue13ProblemWithGetGeneratedKeys() {
+    //
+    //        try{
+    //            sql2o.createQuery("drop sequence fooseq", false).executeUpdate();
+    //        } catch(Sql2oException ex) {
+    //            // ignore errors, if objects doesn't exists already.
+    //            int debug = 0;
+    //        }
+    //
+    //        try{
+    //            sql2o.createQuery("drop table testtable", false).executeUpdate();
+    //        } catch(Sql2oException e) {
+    //            // ignore errors, if objects doesn't exists already.
+    //            int debug = 0;
+    //        }
+    //
+    //
+    //        sql2o.createQuery("create sequence fooseq", false).executeUpdate();
+    //        sql2o.createQuery("create table testtable(id integer primary key, val varchar2(30))", false).executeUpdate();
+    //
+    //        Connection connection = null;
+    //        try {
+    //            connection = sql2o.beginTransaction();
+    //
+    //            String insertSomethingSql = "insert into testtable (id, val) values(fooseq.nextval, :val)";
+    //            Long generatedKey = connection.createQuery(insertSomethingSql, true).addParameter("val", "foo").executeUpdate().getKey(Long.class);
+    //
+    //            Long fetchedKey = connection.createQuery("select id from test_tbl").executeScalar(Long.class);
+    //
+    //            assertEquals(generatedKey, fetchedKey);
+    //        } finally {
+    //            if (connection != null) {
+    //                connection.rollback();
+    //            }
+    //
+    //        }
+    //
+    //        sql2o.createQuery("drop sequence fooseq", false);
+    //        sql2o.createQuery("drop table testtable");
+    //
+    //
+    //    }
 }

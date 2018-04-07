@@ -5,7 +5,7 @@ import java.math.BigDecimal;
 /**
  * Used by sql2o to convert a value from the database into a {@link BigDecimal}.
  */
-public class BigDecimalConverter extends NumberConverter<BigDecimal>{
+public class BigDecimalConverter extends NumberConverter<BigDecimal> {
 
     public BigDecimalConverter() {
         super(false);
@@ -13,10 +13,9 @@ public class BigDecimalConverter extends NumberConverter<BigDecimal>{
 
     @Override
     protected BigDecimal convertNumberValue(Number val) {
-        if (val instanceof BigDecimal){
-            return (BigDecimal)val;
-        }
-        else{
+        if (val instanceof BigDecimal) {
+            return (BigDecimal) val;
+        } else {
             return BigDecimal.valueOf(val.doubleValue());
         }
     }

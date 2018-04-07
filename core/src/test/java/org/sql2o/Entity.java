@@ -19,7 +19,6 @@ public class Entity {
     public Integer aNumber;
     public Long aLongNumber;
 
-
     public Date getTime() {
         return time;
     }

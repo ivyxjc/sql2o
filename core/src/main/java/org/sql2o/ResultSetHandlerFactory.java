@@ -9,5 +9,6 @@ import java.sql.SQLException;
  * Time: 12:02 AM
  */
 public interface ResultSetHandlerFactory<T> {
-    ResultSetHandler<T> newResultSetHandler(ResultSetMetaData resultSetMetaData) throws SQLException;
+    ResultSetHandler<T> newResultSetHandler(ResultSetMetaData resultSetMetaData)
+        throws SQLException;
 }

@@ -10,12 +10,12 @@ import java.util.UUID;
  */
 public class CustomUUIDConverter implements Converter<UUID> {
     public UUID convert(Object val) throws ConverterException {
-        if (val == null){
+        if (val == null) {
             return null;
         }
 
         if (String.class.isAssignableFrom(val.getClass())) {
-            return UUID.fromString(((String)val).replace('!', '-'));
+            return UUID.fromString(((String) val).replace('!', '-'));
         }
 
         throw new ConverterException("Cannot convert type " + val.getClass() + " " + UUID.class);

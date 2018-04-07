@@ -13,5 +13,6 @@ public interface ResultSetIterable<T> extends Iterable<T>, Closeable, AutoClosea
     void close();
 
     boolean isAutoCloseConnection();
+
     void setAutoCloseConnection(boolean autoCloseConnection);
 }

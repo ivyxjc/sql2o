@@ -8,9 +8,9 @@ package org.sql2o.pojos;
  * To change this template use File | Settings | File Templates.
  */
 public class Multi2 {
-    
+
     private int id;
-    
+
     private String value2;
 
     public int getId() {

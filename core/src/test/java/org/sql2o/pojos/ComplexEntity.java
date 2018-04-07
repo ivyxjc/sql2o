@@ -8,17 +8,16 @@ package org.sql2o.pojos;
  * To change this template use File | Settings | File Templates.
  */
 public class ComplexEntity {
-    
+
     public int id;
 
     private EntityWithPrivateFields entity;
 
     public EntityWithPrivateFields getEntity() {
-       return entity;
+        return entity;
     }
 
     public void setEntity(EntityWithPrivateFields entity) {
         this.entity = entity;
     }
-
 }

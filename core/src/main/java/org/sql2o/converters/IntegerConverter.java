@@ -3,7 +3,7 @@ package org.sql2o.converters;
 /**
  * Used by sql2o to convert a value from the database into an {@link Integer}.
  */
-public class IntegerConverter extends NumberConverter<Integer>{
+public class IntegerConverter extends NumberConverter<Integer> {
 
     public IntegerConverter(boolean primitive) {
         super(primitive);

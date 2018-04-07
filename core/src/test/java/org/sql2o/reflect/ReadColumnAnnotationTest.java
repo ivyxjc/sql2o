@@ -1,13 +1,10 @@
 package org.sql2o.reflect;
 
+import com.google.common.collect.ImmutableMap;
 import javax.persistence.Column;
-
+import junit.framework.TestCase;
 import org.junit.Test;
 import org.sql2o.reflection.PojoMetadata;
-
-import com.google.common.collect.ImmutableMap;
-
-import junit.framework.TestCase;
 
 @SuppressWarnings("unused")
 public class ReadColumnAnnotationTest extends TestCase {
@@ -53,7 +50,7 @@ public class ReadColumnAnnotationTest extends TestCase {
     }
 
     private PojoMetadata newPojoMetadata(Class<?> clazz) {
-        return new PojoMetadata(clazz, false, false, ImmutableMap.<String, String> of(), true);
+        return new PojoMetadata(clazz, false, false, ImmutableMap.<String, String>of(), true);
     }
 
     private static class NoAnnotation {
@@ -95,10 +92,9 @@ public class ReadColumnAnnotationTest extends TestCase {
             this.field4 = field4;
         }
     }
-    
+
     private static class UpperCaseAnnotationField {
         @Column(name = "FIELD_1")
         private String field1;
     }
-
 }

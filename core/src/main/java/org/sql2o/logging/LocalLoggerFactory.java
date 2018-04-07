@@ -12,8 +12,7 @@ public class LocalLoggerFactory {
 
     public static Logger getLogger(Class clazz) {
         return slf4jAvailable
-                ? new Slf4jLogger(LoggerFactory.getLogger(clazz))
-                : SysOutLogger.instance;
-
+            ? new Slf4jLogger(LoggerFactory.getLogger(clazz))
+            : SysOutLogger.instance;
     }
 }

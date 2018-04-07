@@ -1,17 +1,17 @@
 package org.sql2o.reflection;
 
+import java.lang.reflect.Constructor;
+import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import org.sql2o.Sql2oException;
 import sun.reflect.ConstructorAccessor;
 import sun.reflect.FieldAccessor;
 import sun.reflect.MethodAccessor;
 
-import java.lang.reflect.Constructor;
-import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-
 @SuppressWarnings("UnusedDeclaration")
-public class MethodAccessorsGenerator implements MethodGetterFactory, MethodSetterFactory, ObjectConstructorFactory {
+public class MethodAccessorsGenerator
+    implements MethodGetterFactory, MethodSetterFactory, ObjectConstructorFactory {
     private static final ThreadLocal<Object> generatorObjectHolder;
     private static final MethodAccessor generateMethod;
     private static final MethodAccessor generateConstructor;
@@ -25,20 +25,25 @@ public class MethodAccessorsGenerator implements MethodGetterFactory, MethodSett
             Constructor<?> declaredConstructor = declaredConstructors[0];
             declaredConstructor.setAccessible(true);
             Object generatorObject = declaredConstructor.newInstance();
-            Method bar = aClass.getMethod("generateMethod", Class.class, String.class, Class[].class, Class.class, Class[].class, Integer.TYPE);
+            Method bar =
+                aClass.getMethod("generateMethod", Class.class, String.class, Class[].class,
+                    Class.class, Class[].class, Integer.TYPE);
             bar.setAccessible(true);
             generateMethod = (MethodAccessor) bar.invoke(
-                    generatorObject,
-                    bar.getDeclaringClass(),
-                    bar.getName(),
-                    bar.getParameterTypes(),
-                    bar.getReturnType(),
-                    bar.getExceptionTypes(),
-                    bar.getModifiers());
-            bar = aClass.getMethod("generateConstructor", Class.class, Class[].class, Class[].class, Integer.TYPE);
+                generatorObject,
+                bar.getDeclaringClass(),
+                bar.getName(),
+                bar.getParameterTypes(),
+                bar.getReturnType(),
+                bar.getExceptionTypes(),
+                bar.getModifiers());
+            bar = aClass.getMethod("generateConstructor", Class.class, Class[].class, Class[].class,
+                Integer.TYPE);
             generateConstructor = newMethodAccessor(generatorObject, bar);
-            bar = aClass.getMethod("generateSerializationConstructor", Class.class, Class[].class, Class[].class, Integer.TYPE, Class.class);
-            final ConstructorAccessor goc = newConstructorAccessor(generatorObject, declaredConstructor);
+            bar = aClass.getMethod("generateSerializationConstructor", Class.class, Class[].class,
+                Class[].class, Integer.TYPE, Class.class);
+            final ConstructorAccessor goc =
+                newConstructorAccessor(generatorObject, declaredConstructor);
             generatorObjectHolder = new ThreadLocal<Object>() {
                 @Override
                 protected Object initialValue() {
@@ -60,7 +65,8 @@ public class MethodAccessorsGenerator implements MethodGetterFactory, MethodSett
 
     public static FieldAccessor newFieldAccessor(Field field, boolean overrideFinalCheck) {
         try {
-            return (FieldAccessor) newFieldAccessor.invoke(null, new Object[]{field, overrideFinalCheck});
+            return (FieldAccessor) newFieldAccessor.invoke(null,
+                new Object[] {field, overrideFinalCheck});
         } catch (InvocationTargetException e) {
             throw new RuntimeException(e);
         }
@@ -74,9 +80,10 @@ public class MethodAccessorsGenerator implements MethodGetterFactory, MethodSett
         }
     }
 
-    private static MethodAccessor newMethodAccessor(Object generatorObject, Method bar) throws InvocationTargetException {
+    private static MethodAccessor newMethodAccessor(Object generatorObject, Method bar)
+        throws InvocationTargetException {
         return (MethodAccessor) generateMethod.invoke(
-                generatorObject, new Object[]{
+            generatorObject, new Object[] {
                 bar.getDeclaringClass(),
                 bar.getName(),
                 bar.getParameterTypes(),
@@ -93,19 +100,21 @@ public class MethodAccessorsGenerator implements MethodGetterFactory, MethodSett
         }
     }
 
-    private static ConstructorAccessor newConstructorAccessor(Object generatorObject, Constructor<?> bar) throws InvocationTargetException {
+    private static ConstructorAccessor newConstructorAccessor(Object generatorObject,
+        Constructor<?> bar) throws InvocationTargetException {
         return (ConstructorAccessor) generateConstructor.invoke(
-                generatorObject, new Object[]{
+            generatorObject, new Object[] {
                 bar.getDeclaringClass(),
                 bar.getParameterTypes(),
                 bar.getExceptionTypes(),
                 bar.getModifiers()});
     }
 
-    public static ConstructorAccessor newConstructorAccessor(Constructor<?> bar, Class<?> targetClass) {
+    public static ConstructorAccessor newConstructorAccessor(Constructor<?> bar,
+        Class<?> targetClass) {
         try {
             return (ConstructorAccessor) generateSerializationConstructor.invoke(
-                    generatorObjectHolder.get(), new Object[]{
+                generatorObjectHolder.get(), new Object[] {
                     targetClass,
                     bar.getParameterTypes(),
                     bar.getExceptionTypes(),
@@ -125,7 +134,10 @@ public class MethodAccessorsGenerator implements MethodGetterFactory, MethodSett
                 try {
                     return methodAccessor.invoke(obj, null);
                 } catch (InvocationTargetException e) {
-                    throw new Sql2oException("error while calling getter method with name " + method.getName() + " on class " + obj.getClass().toString(), e);
+                    throw new Sql2oException("error while calling getter method with name "
+                        + method.getName()
+                        + " on class "
+                        + obj.getClass().toString(), e);
                 }
             }
 
@@ -142,9 +154,12 @@ public class MethodAccessorsGenerator implements MethodGetterFactory, MethodSett
             public void setProperty(Object obj, Object value) {
                 if (value == null && type.isPrimitive()) return;
                 try {
-                    methodAccessor.invoke(obj, new Object[]{value});
+                    methodAccessor.invoke(obj, new Object[] {value});
                 } catch (InvocationTargetException e) {
-                    throw new Sql2oException("error while calling setter method with name " + method.getName() + " on class " + obj.getClass().toString(), e);
+                    throw new Sql2oException("error while calling setter method with name "
+                        + method.getName()
+                        + " on class "
+                        + obj.getClass().toString(), e);
                 }
             }
 
@@ -160,15 +175,16 @@ public class MethodAccessorsGenerator implements MethodGetterFactory, MethodSett
             try {
                 Constructor<?> ctor = cls0.getDeclaredConstructor();
                 final ConstructorAccessor constructorAccessor = (cls0 == cls)
-                        ? newConstructorAccessor(ctor)
-                        : newConstructorAccessor(ctor, cls);
+                    ? newConstructorAccessor(ctor)
+                    : newConstructorAccessor(ctor, cls);
                 return new ObjectConstructor() {
                     @Override
                     public Object newInstance() {
                         try {
                             return constructorAccessor.newInstance(null);
                         } catch (InstantiationException | InvocationTargetException e) {
-                            throw new Sql2oException("Could not create a new instance of class " + cls, e);
+                            throw new Sql2oException(
+                                "Could not create a new instance of class " + cls, e);
                         }
                     }
                 };

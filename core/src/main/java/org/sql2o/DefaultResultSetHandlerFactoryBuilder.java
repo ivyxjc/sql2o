@@ -1,9 +1,8 @@
 package org.sql2o;
 
+import java.util.Map;
 import org.sql2o.quirks.Quirks;
 import org.sql2o.reflection.PojoMetadata;
-
-import java.util.Map;
 
 public class DefaultResultSetHandlerFactoryBuilder implements ResultSetHandlerFactoryBuilder {
     private boolean caseSensitive;
@@ -54,12 +53,11 @@ public class DefaultResultSetHandlerFactoryBuilder implements ResultSetHandlerFa
         this.quirks = quirks;
     }
 
-
-
     @SuppressWarnings("unchecked")
     public <T> ResultSetHandlerFactory<T> newFactory(Class<T> clazz) {
-        PojoMetadata pojoMetadata = new PojoMetadata(clazz, caseSensitive, autoDeriveColumnNames, columnMappings, throwOnMappingError);
+        PojoMetadata pojoMetadata =
+            new PojoMetadata(clazz, caseSensitive, autoDeriveColumnNames, columnMappings,
+                throwOnMappingError);
         return new DefaultResultSetHandlerFactory(pojoMetadata, quirks);
     }
-
 }

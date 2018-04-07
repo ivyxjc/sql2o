@@ -1,11 +1,10 @@
 package org.sql2o.converters;
 
-import org.sql2o.tools.IOUtils;
-
 import java.io.IOException;
 import java.io.Reader;
 import java.sql.Clob;
 import java.sql.SQLException;
+import org.sql2o.tools.IOUtils;
 
 /**
  * Used by sql2o to convert a value from the database into a {@link String}.
@@ -13,16 +12,15 @@ import java.sql.SQLException;
 public class StringConverter extends ConverterBase<String> {
 
     public String convert(Object val) throws ConverterException {
-        if (val == null){
+        if (val == null) {
             return null;
         }
 
         if (val instanceof Clob) {
-            Clob clobVal = (Clob)val;
-            try
-            {
+            Clob clobVal = (Clob) val;
+            try {
                 try {
-                    return clobVal.getSubString(1, (int)clobVal.length());
+                    return clobVal.getSubString(1, (int) clobVal.length());
                 } catch (SQLException e) {
                     throw new ConverterException("error converting clob to String", e);
                 }
@@ -35,7 +33,7 @@ public class StringConverter extends ConverterBase<String> {
             }
         }
 
-        if(val instanceof Reader){
+        if (val instanceof Reader) {
             Reader reader = (Reader) val;
             try {
                 try {

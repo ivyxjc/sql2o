@@ -5,7 +5,8 @@ import org.sql2o.reflection.MethodAccessorsGenerator;
 /**
  * @author mdelapenya
  */
-public class MethodAccessorsGeneratorMethodGetterFactoryTest extends AbstractMethodGetterFactoryTest {
+public class MethodAccessorsGeneratorMethodGetterFactoryTest
+    extends AbstractMethodGetterFactoryTest {
     public MethodAccessorsGeneratorMethodGetterFactoryTest() {
         super(new MethodAccessorsGenerator());
     }

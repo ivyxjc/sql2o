@@ -1,11 +1,10 @@
 package org.sql2o.reflect;
 
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import junit.framework.TestCase;
 import org.sql2o.reflection.MethodSetterFactory;
 import org.sql2o.reflection.Setter;
-
-import java.lang.reflect.Field;
-import java.lang.reflect.Method;
 
 /**
  * User: dimzon
@@ -13,7 +12,81 @@ import java.lang.reflect.Method;
  * Time: 10:18 PM
  */
 public abstract class AbstractMethodSetterFactoryTest extends TestCase {
-    public static class POJO1{
+    public final MethodSetterFactory msf;
+
+    public AbstractMethodSetterFactoryTest(MethodSetterFactory msf) {
+        this.msf = msf;
+    }
+
+    public void testAllTypes() throws IllegalAccessException, NoSuchFieldException {
+        POJO1 pojo1 = new POJO1();
+        pojo1._boolean = true;
+        pojo1._byte = 17;
+        pojo1._short = 87;
+        pojo1._int = Integer.MIN_VALUE;
+        pojo1._long = 1337;
+        pojo1._char = 'a';
+        pojo1._double = Math.PI;
+        pojo1._float = (float) Math.log(93);
+        pojo1._obj = pojo1;
+
+        POJO1 pojo2 = new POJO1();
+
+        assertFalse(pojo1.equals(pojo2));
+
+        Method[] methods = pojo1.getClass().getDeclaredMethods();
+        for (Method method : methods) {
+            if (!method.getName().startsWith("set_")) continue;
+            Field field = pojo1.getClass()
+                .getDeclaredField(method.getName().substring(3));
+            Setter setter = msf.newSetter(method);
+            assertSame(field.getType(), setter.getType());
+            Object val1 = field.get(pojo1);
+            Object val2 = field.get(pojo2);
+            assertFalse(val1.equals(val2));
+            setter.setProperty(pojo2, val1);
+            Object val3 = field.get(pojo2);
+            assertEquals(val1, val3);
+        }
+
+        assertEquals(pojo1, pojo2);
+
+        // let's reset all values to NULL
+        // primitive fields will not be affected
+        for (Method method : methods) {
+            if (!method.getName().startsWith("set_")) continue;
+            Field field = pojo1.getClass()
+                .getDeclaredField(method.getName().substring(3));
+            Setter setter = msf.newSetter(method);
+            Object val1 = field.get(pojo1);
+            assertNotNull(val1);
+
+            setter.setProperty(pojo1, null);
+
+            Object val2 = field.get(pojo1);
+            if (!setter.getType().isPrimitive()) {
+                assertNull(val2);
+                continue;
+            }
+            assertNotNull(val2);
+            // not affected
+            assertEquals(val1, val2);
+        }
+        pojo2._obj = null;
+        assertEquals(pojo2, pojo1);
+    }
+
+    public static class POJO1 {
+        boolean _boolean;
+        byte _byte;
+        short _short;
+        int _int;
+        long _long;
+        float _float;
+        double _double;
+        char _char;
+        Object _obj;
+
         public void set_boolean(boolean _boolean) {
             this._boolean = _boolean;
         }
@@ -50,16 +123,6 @@ public abstract class AbstractMethodSetterFactoryTest extends TestCase {
             this._obj = _obj;
         }
 
-        boolean _boolean;
-        byte _byte;
-        short _short;
-        int _int;
-        long _long;
-        float _float;
-        double _double;
-        char _char;
-        Object _obj;
-
         @Override
         public boolean equals(Object o) {
             if (this == o) return true;
@@ -75,75 +138,7 @@ public abstract class AbstractMethodSetterFactoryTest extends TestCase {
             if (_int != pojo1._int) return false;
             if (_long != pojo1._long) return false;
             if (_short != pojo1._short) return false;
-            if (_obj != null ? !_obj.equals(pojo1._obj) : pojo1._obj != null) return false;
-
-            return true;
+            return _obj != null ? _obj.equals(pojo1._obj) : pojo1._obj == null;
         }
-    }
-
-
-    public void testAllTypes() throws IllegalAccessException, NoSuchFieldException {
-        POJO1 pojo1 = new POJO1();
-        pojo1._boolean = true;
-        pojo1._byte = 17;
-        pojo1._short=87;
-        pojo1._int= Integer.MIN_VALUE;
-        pojo1._long= 1337;
-        pojo1._char='a';
-        pojo1._double=Math.PI;
-        pojo1._float= (float) Math.log(93);
-        pojo1._obj = pojo1;
-
-        POJO1 pojo2 = new POJO1();
-
-        assertFalse(pojo1.equals(pojo2));
-
-        Method[] methods = pojo1.getClass().getDeclaredMethods();
-        for (Method method : methods) {
-            if(!method.getName().startsWith("set_")) continue;
-            Field field = pojo1.getClass()
-                    .getDeclaredField(method.getName().substring(3));
-            Setter setter = msf.newSetter(method);
-            assertSame(field.getType(),setter.getType());
-            Object val1 = field.get(pojo1);
-            Object val2 = field.get(pojo2);
-            assertFalse(val1.equals(val2));
-            setter.setProperty(pojo2,val1);
-            Object val3 = field.get(pojo2);
-            assertEquals(val1,val3);
-        }
-
-        assertEquals(pojo1,pojo2);
-
-        // let's reset all values to NULL
-        // primitive fields will not be affected
-        for (Method method : methods) {
-            if(!method.getName().startsWith("set_")) continue;
-            Field field = pojo1.getClass()
-                    .getDeclaredField(method.getName().substring(3));
-            Setter setter = msf.newSetter(method);
-            Object val1 = field.get(pojo1);
-            assertNotNull(val1);
-
-            setter.setProperty(pojo1,null);
-
-            Object val2 = field.get(pojo1);
-            if(!setter.getType().isPrimitive()){
-                assertNull(val2);
-                continue;
-            }
-            assertNotNull(val2);
-            // not affected
-            assertEquals(val1,val2);
-        }
-        pojo2._obj = null;
-        assertEquals(pojo2,pojo1);
-    }
-
-
-    public  final MethodSetterFactory msf;
-
-    public AbstractMethodSetterFactoryTest(MethodSetterFactory msf) {
-        this.msf = msf;
     }
 }

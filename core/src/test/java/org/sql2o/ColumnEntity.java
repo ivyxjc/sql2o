@@ -23,5 +23,4 @@ public class ColumnEntity {
     public void setText(String text) {
         this.text = text;
     }
-
 }

@@ -1,11 +1,10 @@
 package org.sql2o.converters;
 
-import org.sql2o.tools.IOUtils;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.sql.Blob;
 import java.sql.SQLException;
+import org.sql2o.tools.IOUtils;
 
 /**
  * User: lars
@@ -18,23 +17,23 @@ public class ByteArrayConverter extends ConverterBase<byte[]> {
         if (val == null) return null;
 
         if (val instanceof Blob) {
-            Blob b = (Blob)val;
-            InputStream stream=null;
+            Blob b = (Blob) val;
+            InputStream stream = null;
             try {
                 try {
                     stream = b.getBinaryStream();
                     return IOUtils.toByteArray(stream);
                 } finally {
-                    if(stream!=null) {
+                    if (stream != null) {
                         try {
                             stream.close();
-                        } catch (Throwable ignore){
+                        } catch (Throwable ignore) {
                             // ignore stream.close errors
                         }
                     }
                     try {
                         b.free();
-                    } catch (Throwable ignore){
+                    } catch (Throwable ignore) {
                         // ignore blob.free errors
                     }
                 }
@@ -45,8 +44,8 @@ public class ByteArrayConverter extends ConverterBase<byte[]> {
             }
         }
 
-        if (val instanceof byte[]){
-            return (byte[])val;
+        if (val instanceof byte[]) {
+            return (byte[]) val;
         }
 
         throw new RuntimeException("could not convert " + val.getClass().getName() + " to byte[]");

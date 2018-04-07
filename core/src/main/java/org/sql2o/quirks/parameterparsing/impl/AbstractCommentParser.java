@@ -5,7 +5,8 @@ package org.sql2o.quirks.parameterparsing.impl;
  */
 public abstract class AbstractCommentParser implements CharParser {
 
-    protected void init(){};
+    protected void init() {
+    }
 
     @Override
     public int parse(char c, int idx, StringBuilder parsedSql, String sql, int length) {
@@ -14,7 +15,7 @@ public abstract class AbstractCommentParser implements CharParser {
             parsedSql.append(c);
             if (++idx == length) return idx;
             c = sql.charAt(idx);
-        } while(!isEndComment(c));
+        } while (!isEndComment(c));
         parsedSql.append(c);
         return idx;
     }

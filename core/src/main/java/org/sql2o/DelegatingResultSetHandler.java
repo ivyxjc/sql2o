@@ -9,15 +9,15 @@ import java.sql.SQLException;
  * Time: 11:06 PM
  */
 public class DelegatingResultSetHandler<E> implements ResultSetHandler<E> {
-    private volatile ResultSetHandler<E> inner = null;
     private final ResultSetHandlerFactory<E> factory;
+    private volatile ResultSetHandler<E> inner = null;
 
     public DelegatingResultSetHandler(ResultSetHandlerFactory<E> factory) {
         this.factory = factory;
     }
 
     public E handle(ResultSet resultSet) throws SQLException {
-        if(inner==null) inner = factory.newResultSetHandler(resultSet.getMetaData());
+        if (inner == null) inner = factory.newResultSetHandler(resultSet.getMetaData());
         return inner.handle(resultSet);
     }
 }

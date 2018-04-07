@@ -1,12 +1,5 @@
 package org.sql2o;
 
-import org.sql2o.connectionsources.ConnectionSource;
-import org.sql2o.converters.Converter;
-import org.sql2o.converters.ConverterException;
-import org.sql2o.logging.LocalLoggerFactory;
-import org.sql2o.logging.Logger;
-import org.sql2o.quirks.Quirks;
-
 import java.io.Closeable;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -15,6 +8,12 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import org.sql2o.connectionsources.ConnectionSource;
+import org.sql2o.converters.Converter;
+import org.sql2o.converters.ConverterException;
+import org.sql2o.logging.LocalLoggerFactory;
+import org.sql2o.logging.Logger;
+import org.sql2o.quirks.Quirks;
 
 import static org.sql2o.converters.Convert.throwIfNull;
 
@@ -22,21 +21,32 @@ import static org.sql2o.converters.Convert.throwIfNull;
  * Represents a connection to the database with a transaction.
  */
 public class Connection implements AutoCloseable, Closeable {
-    
-    private final static Logger logger = LocalLoggerFactory.getLogger(Connection.class);
 
+    private final static Logger logger = LocalLoggerFactory.getLogger(Connection.class);
+    final boolean autoClose;
+    private final Set<Statement> statements = new HashSet<>();
     private ConnectionSource connectionSource;
     private java.sql.Connection jdbcConnection;
     private Sql2o sql2o;
-
     private Integer result = null;
     private int[] batchResult = null;
     private List<Object> keys;
     private boolean canGetKeys;
-    
     private boolean rollbackOnException = true;
-
     private Boolean originalAutoCommit;
+    private boolean rollbackOnClose = true;
+
+    Connection(Sql2o sql2o, boolean autoClose) {
+        this(sql2o, null, autoClose);
+    }
+
+    Connection(Sql2o sql2o, ConnectionSource connectionSource, boolean autoClose) {
+        this.connectionSource =
+            connectionSource != null ? connectionSource : sql2o.getConnectionSource();
+        this.autoClose = autoClose;
+        this.sql2o = sql2o;
+        createConnection();
+    }
 
     public boolean isRollbackOnException() {
         return rollbackOnException;
@@ -47,8 +57,6 @@ public class Connection implements AutoCloseable, Closeable {
         return this;
     }
 
-    private boolean rollbackOnClose = true;
-
     public boolean isRollbackOnClose() {
         return rollbackOnClose;
     }
@@ -56,19 +64,6 @@ public class Connection implements AutoCloseable, Closeable {
     public Connection setRollbackOnClose(boolean rollbackOnClose) {
         this.rollbackOnClose = rollbackOnClose;
         return this;
-    }
-
-    final boolean autoClose;
-
-    Connection(Sql2o sql2o, boolean autoClose) {
-        this(sql2o, null, autoClose);
-    }
-
-    Connection(Sql2o sql2o, ConnectionSource connectionSource, boolean autoClose) {
-        this.connectionSource = connectionSource != null ? connectionSource : sql2o.getConnectionSource();
-        this.autoClose = autoClose;
-        this.sql2o = sql2o;
-        createConnection();
     }
 
     void onException() {
@@ -85,15 +80,15 @@ public class Connection implements AutoCloseable, Closeable {
         return sql2o;
     }
 
-    public Query createQuery(String queryText){
+    public Query createQuery(String queryText) {
         boolean returnGeneratedKeys = this.sql2o.getQuirks().returnGeneratedKeysByDefault();
         return createQuery(queryText, returnGeneratedKeys);
     }
 
-    public Query createQuery(String queryText, boolean returnGeneratedKeys){
+    public Query createQuery(String queryText, boolean returnGeneratedKeys) {
 
         try {
-            if (jdbcConnection.isClosed()){
+            if (jdbcConnection.isClosed()) {
                 createConnection();
             }
         } catch (SQLException e) {
@@ -103,75 +98,74 @@ public class Connection implements AutoCloseable, Closeable {
         return new Query(this, queryText, returnGeneratedKeys);
     }
 
-    public Query createQuery(String queryText, String ... columnNames) {
+    public Query createQuery(String queryText, String... columnNames) {
         try {
             if (jdbcConnection.isClosed()) {
                 createConnection();
             }
-        } catch(SQLException e) {
+        } catch (SQLException e) {
             throw new Sql2oException("Error creating connection", e);
         }
 
         return new Query(this, queryText, columnNames);
     }
 
-    public Query createQueryWithParams(String queryText, Object... paramValues){
+    public Query createQueryWithParams(String queryText, Object... paramValues) {
         // due to #146, creating a query will not create a statement anymore;
         // the PreparedStatement will only be created once the query needs to be executed
         // => there is no need to handle the query closing here anymore since there is nothing to close
         return createQuery(queryText)
-                .withParams(paramValues);
+            .withParams(paramValues);
     }
 
-    public Sql2o rollback(){
+    public Sql2o rollback() {
         return this.rollback(true).sql2o;
     }
 
-    public Connection rollback(boolean closeConnection){
+    public Connection rollback(boolean closeConnection) {
         try {
             jdbcConnection.rollback();
-        }
-        catch (SQLException e) {
+        } catch (SQLException e) {
             logger.warn("Could not roll back transaction. message: {}", e);
-        }
-        finally {
-            if(closeConnection) this.closeJdbcConnection();
+        } finally {
+            if (closeConnection) this.closeJdbcConnection();
         }
         return this;
     }
 
-    public Sql2o commit(){
+    public Sql2o commit() {
         return this.commit(true).sql2o;
     }
 
-    public Connection commit(boolean closeConnection){
+    public Connection commit(boolean closeConnection) {
         try {
             jdbcConnection.commit();
-        }
-        catch (SQLException e) {
+        } catch (SQLException e) {
             throw new Sql2oException(e);
-        }
-        finally {
-            if(closeConnection)
+        } finally {
+            if (closeConnection) {
                 this.closeJdbcConnection();
+            }
         }
         return this;
     }
 
-    public int getResult(){
-        if (this.result == null){
-            throw new Sql2oException("It is required to call executeUpdate() method before calling getResult().");
+    public int getResult() {
+        if (this.result == null) {
+            throw new Sql2oException(
+                "It is required to call executeUpdate() method before calling getResult().");
         }
         return this.result;
     }
 
-    void setResult(int result){
+    void setResult(int result) {
         this.result = result;
     }
 
     public int[] getBatchResult() {
-        if (this.batchResult == null){
-            throw new Sql2oException("It is required to call executeBatch() method before calling getBatchResult().");
+        if (this.batchResult == null) {
+            throw new Sql2oException(
+                "It is required to call executeBatch() method before calling getBatchResult().");
         }
         return this.batchResult;
     }
@@ -180,54 +174,59 @@ public class Connection implements AutoCloseable, Closeable {
         this.batchResult = value;
     }
 
-    void setKeys(ResultSet rs) throws SQLException {
-        if (rs == null){
-            this.keys = null;
-            return;
+    public Object getKey() {
+        if (!this.canGetKeys) {
+            throw new Sql2oException(
+                "Keys were not fetched from database. Please set the returnGeneratedKeys parameter in the createQuery() method to enable fetching of generated keys.");
         }
-        this.keys = new ArrayList<Object>();
-        while(rs.next()){
-            this.keys.add(rs.getObject(1));
-        }
-    }
-
-    public Object getKey(){
-        if (!this.canGetKeys){
-            throw new Sql2oException("Keys were not fetched from database. Please set the returnGeneratedKeys parameter in the createQuery() method to enable fetching of generated keys.");
-        }
-        if (this.keys != null && this.keys.size() > 0){
-            return  keys.get(0);
+        if (this.keys != null && this.keys.size() > 0) {
+            return keys.get(0);
         }
         return null;
     }
 
     @SuppressWarnings("unchecked") // need to change Convert
-    public <V> V getKey(Class returnType){
+    public <V> V getKey(Class returnType) {
         final Quirks quirks = this.sql2o.getQuirks();
         Object key = getKey();
         try {
             Converter<V> converter = throwIfNull(returnType, quirks.converterOf(returnType));
             return converter.convert(key);
         } catch (ConverterException e) {
-            throw new Sql2oException("Exception occurred while converting value from database to type " + returnType.toString(), e);
+            throw new Sql2oException(
+                "Exception occurred while converting value from database to type "
+                    + returnType.toString(), e);
         }
     }
 
-    public Object[] getKeys(){
-        if (!this.canGetKeys){
-            throw new Sql2oException("Keys where not fetched from database. Please set the returnGeneratedKeys parameter in the createQuery() method to enable fetching of generated keys.");
+    public Object[] getKeys() {
+        if (!this.canGetKeys) {
+            throw new Sql2oException(
+                "Keys where not fetched from database. Please set the returnGeneratedKeys parameter in the createQuery() method to enable fetching of generated keys.");
         }
-        if (this.keys != null){
+        if (this.keys != null) {
             return this.keys.toArray();
         }
         return null;
+    }
+
+    void setKeys(ResultSet rs) throws SQLException {
+        if (rs == null) {
+            this.keys = null;
+            return;
+        }
+        this.keys = new ArrayList<Object>();
+        while (rs.next()) {
+            this.keys.add(rs.getObject(1));
+        }
     }
 
     @SuppressWarnings("unchecked") // need to change Convert
     public <V> List<V> getKeys(Class<V> returnType) {
         final Quirks quirks = sql2o.getQuirks();
         if (!this.canGetKeys) {
-            throw new Sql2oException("Keys where not fetched from database. Please set the returnGeneratedKeys parameter in the createQuery() method to enable fetching of generated keys.");
+            throw new Sql2oException(
+                "Keys where not fetched from database. Please set the returnGeneratedKeys parameter in the createQuery() method to enable fetching of generated keys.");
         }
 
         if (this.keys != null) {
@@ -241,9 +240,10 @@ public class Connection implements AutoCloseable, Closeable {
                 }
 
                 return convertedKeys;
-            }
-            catch (ConverterException e) {
-                throw new Sql2oException("Exception occurred while converting value from database to type " + returnType.toString(), e);
+            } catch (ConverterException e) {
+                throw new Sql2oException(
+                    "Exception occurred while converting value from database to type "
+                        + returnType.toString(), e);
             }
         }
 
@@ -254,12 +254,11 @@ public class Connection implements AutoCloseable, Closeable {
         this.canGetKeys = canGetKeys;
     }
 
-    private final Set<Statement> statements = new HashSet<>();
-
-    void registerStatement(Statement statement){
+    void registerStatement(Statement statement) {
         statements.add(statement);
     }
-    void removeStatement(Statement statement){
+
+    void removeStatement(Statement statement) {
         statements.remove(statement);
     }
 
@@ -268,7 +267,9 @@ public class Connection implements AutoCloseable, Closeable {
         try {
             connectionIsClosed = jdbcConnection.isClosed();
         } catch (SQLException e) {
-            throw new Sql2oException("Sql2o encountered a problem while trying to determine whether the connection is closed.", e);
+            throw new Sql2oException(
+                "Sql2o encountered a problem while trying to determine whether the connection is closed.",
+                e);
         }
 
         if (!connectionIsClosed) {
@@ -294,20 +295,19 @@ public class Connection implements AutoCloseable, Closeable {
             // if in transaction, rollback, otherwise just close
             if (rollback) {
                 this.rollback(true);
-            }
-            else {
+            } else {
                 this.closeJdbcConnection();
             }
         }
     }
 
-    private void createConnection(){
-        try{
+    private void createConnection() {
+        try {
             this.jdbcConnection = connectionSource.getConnection();
             this.originalAutoCommit = jdbcConnection.getAutoCommit();
-        }
-        catch(Exception ex){
-            throw new Sql2oException("Could not acquire a connection from DataSource - " + ex.getMessage(), ex);
+        } catch (Exception ex) {
+            throw new Sql2oException(
+                "Could not acquire a connection from DataSource - " + ex.getMessage(), ex);
         }
     }
 
@@ -315,19 +315,19 @@ public class Connection implements AutoCloseable, Closeable {
         resetAutoCommitState();
         try {
             jdbcConnection.close();
-        }
-        catch (SQLException e) {
+        } catch (SQLException e) {
             logger.warn("Could not close connection. message: {}", e);
         }
     }
 
     private void resetAutoCommitState() {
         // resets the AutoCommit state to make sure that the connection has been reset before reuse (if a connection pool is used)
-        if(originalAutoCommit != null) {
+        if (originalAutoCommit != null) {
             try {
                 this.jdbcConnection.setAutoCommit(originalAutoCommit);
             } catch (SQLException e) {
-                logger.warn(String.format("Could not reset autocommit state for connection to %s.", originalAutoCommit), e);
+                logger.warn(String.format("Could not reset autocommit state for connection to %s.",
+                    originalAutoCommit), e);
             }
         }
     }

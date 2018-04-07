@@ -10,15 +10,14 @@
 
 package org.sql2o.quirks;
 
-import org.sql2o.converters.Converter;
-import org.sql2o.converters.OracleUUIDConverter;
-
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
+import org.sql2o.converters.Converter;
+import org.sql2o.converters.OracleUUIDConverter;
 
 public class OracleQuirks extends NoQuirks {
     public OracleQuirks() {
@@ -36,7 +35,7 @@ public class OracleQuirks extends NoQuirks {
         Object o = super.getRSVal(rs, idx);
         // oracle timestamps are not always convertible to a java Date. If ResultSet.getTimestamp is used instead of
         // ResultSet.getObject, a normal java.sql.Timestamp instance is returnd.
-        if (o != null && o.getClass().getCanonicalName().startsWith("oracle.sql.TIMESTAMP")){
+        if (o != null && o.getClass().getCanonicalName().startsWith("oracle.sql.TIMESTAMP")) {
             //TODO: use TIMESTAMP.dateValue
             o = rs.getTimestamp(idx);
         }
@@ -49,7 +48,8 @@ public class OracleQuirks extends NoQuirks {
     }
 
     @Override
-    public void setParameter(PreparedStatement statement, int paramIdx, UUID value) throws SQLException {
-        statement.setBytes(paramIdx, (byte[])new OracleUUIDConverter().toDatabaseParam(value));
+    public void setParameter(PreparedStatement statement, int paramIdx, UUID value)
+        throws SQLException {
+        statement.setBytes(paramIdx, (byte[]) new OracleUUIDConverter().toDatabaseParam(value));
     }
 }

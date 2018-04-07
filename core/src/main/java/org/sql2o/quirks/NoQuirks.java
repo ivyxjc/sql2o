@@ -1,28 +1,31 @@
 package org.sql2o.quirks;
 
-import org.sql2o.Sql2oException;
-import org.sql2o.converters.Convert;
-import org.sql2o.converters.Converter;
-import org.sql2o.quirks.parameterparsing.impl.DefaultSqlParameterParsingStrategy;
-import org.sql2o.quirks.parameterparsing.SqlParameterParsingStrategy;
-
 import java.io.InputStream;
-import java.sql.*;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
+import java.sql.Statement;
+import java.sql.Time;
+import java.sql.Timestamp;
+import java.sql.Types;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
+import org.sql2o.converters.Convert;
+import org.sql2o.converters.Converter;
+import org.sql2o.quirks.parameterparsing.SqlParameterParsingStrategy;
+import org.sql2o.quirks.parameterparsing.impl.DefaultSqlParameterParsingStrategy;
 
 /**
  * @author aldenquimby@gmail.com
  * @since 4/6/14
  */
 public class NoQuirks implements Quirks {
-    protected final Map<Class,Converter>  converters;
-    private final SqlParameterParsingStrategy sqlParameterParsingStrategy = new DefaultSqlParameterParsingStrategy();
+    protected final Map<Class, Converter> converters;
+    private final SqlParameterParsingStrategy sqlParameterParsingStrategy =
+        new DefaultSqlParameterParsingStrategy();
 
     public NoQuirks(Map<Class, Converter> converters) {
         // protective copy
@@ -32,17 +35,16 @@ public class NoQuirks implements Quirks {
     }
 
     public NoQuirks() {
-        this(Collections.<Class,Converter>emptyMap());
+        this(Collections.<Class, Converter>emptyMap());
     }
 
     @SuppressWarnings("unchecked") @Override
     public <E> Converter<E> converterOf(Class<E> ofClass) {
         // if nobody change this collection outside constructor
         // it's thread-safe
-        Converter c =  converters.get(ofClass);
+        Converter c = converters.get(ofClass);
         // if no "local" converter let's look in global
-        return c!=null?c:Convert.getConverterIfExists(ofClass);
-
+        return c != null ? c : Convert.getConverterIfExists(ofClass);
     }
 
     @Override
@@ -56,22 +58,26 @@ public class NoQuirks implements Quirks {
     }
 
     @Override
-    public void setParameter(PreparedStatement statement, int paramIdx, Object value) throws SQLException {
+    public void setParameter(PreparedStatement statement, int paramIdx, Object value)
+        throws SQLException {
         statement.setObject(paramIdx, value);
     }
 
     @Override
-    public void setParameter(PreparedStatement statement, int paramIdx, InputStream value) throws SQLException {
+    public void setParameter(PreparedStatement statement, int paramIdx, InputStream value)
+        throws SQLException {
         statement.setBinaryStream(paramIdx, value);
     }
 
     @Override
-    public void setParameter(PreparedStatement statement, int paramIdx, int value) throws SQLException {
+    public void setParameter(PreparedStatement statement, int paramIdx, int value)
+        throws SQLException {
         statement.setInt(paramIdx, value);
     }
 
     @Override
-    public void setParameter(PreparedStatement statement, int paramIdx, Integer value) throws SQLException {
+    public void setParameter(PreparedStatement statement, int paramIdx, Integer value)
+        throws SQLException {
         if (value == null) {
             statement.setNull(paramIdx, Types.INTEGER);
         } else {
@@ -80,12 +86,14 @@ public class NoQuirks implements Quirks {
     }
 
     @Override
-    public void setParameter(PreparedStatement statement, int paramIdx, long value) throws SQLException {
+    public void setParameter(PreparedStatement statement, int paramIdx, long value)
+        throws SQLException {
         statement.setLong(paramIdx, value);
     }
 
     @Override
-    public void setParameter(PreparedStatement statement, int paramIdx, Long value) throws SQLException {
+    public void setParameter(PreparedStatement statement, int paramIdx, Long value)
+        throws SQLException {
         if (value == null) {
             statement.setNull(paramIdx, Types.BIGINT);
         } else {
@@ -94,7 +102,8 @@ public class NoQuirks implements Quirks {
     }
 
     @Override
-    public void setParameter(PreparedStatement statement, int paramIdx, String value) throws SQLException {
+    public void setParameter(PreparedStatement statement, int paramIdx, String value)
+        throws SQLException {
         if (value == null) {
             statement.setNull(paramIdx, Types.VARCHAR);
         } else {
@@ -103,7 +112,8 @@ public class NoQuirks implements Quirks {
     }
 
     @Override
-    public void setParameter(PreparedStatement statement, int paramIdx, Timestamp value) throws SQLException {
+    public void setParameter(PreparedStatement statement, int paramIdx, Timestamp value)
+        throws SQLException {
         if (value == null) {
             statement.setNull(paramIdx, Types.TIMESTAMP);
         } else {
@@ -112,7 +122,8 @@ public class NoQuirks implements Quirks {
     }
 
     @Override
-    public void setParameter(PreparedStatement statement, int paramIdx, Time value) throws SQLException {
+    public void setParameter(PreparedStatement statement, int paramIdx, Time value)
+        throws SQLException {
         if (value == null) {
             statement.setNull(paramIdx, Types.TIME);
         } else {
@@ -120,21 +131,24 @@ public class NoQuirks implements Quirks {
         }
     }
 
-
-    public void setParameter(PreparedStatement statement, int paramIdx, Boolean value) throws SQLException {
-        if (value == null)
+    public void setParameter(PreparedStatement statement, int paramIdx, Boolean value)
+        throws SQLException {
+        if (value == null) {
             statement.setNull(paramIdx, Types.BOOLEAN);
-        else
+        } else {
             statement.setBoolean(paramIdx, value);
+        }
     }
 
     @Override
-    public void setParameter(PreparedStatement statement, int paramIdx, UUID value) throws SQLException {
+    public void setParameter(PreparedStatement statement, int paramIdx, UUID value)
+        throws SQLException {
         statement.setObject(paramIdx, value);
     }
 
     @Override
-    public void setParameter(PreparedStatement statement, int paramIdx, boolean value) throws SQLException {
+    public void setParameter(PreparedStatement statement, int paramIdx, boolean value)
+        throws SQLException {
         statement.setBoolean(paramIdx, value);
     }
 

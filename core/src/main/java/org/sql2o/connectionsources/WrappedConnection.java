@@ -1,6 +1,20 @@
 package org.sql2o.connectionsources;
 
-import java.sql.*;
+import java.sql.Array;
+import java.sql.Blob;
+import java.sql.CallableStatement;
+import java.sql.Clob;
+import java.sql.Connection;
+import java.sql.DatabaseMetaData;
+import java.sql.NClob;
+import java.sql.PreparedStatement;
+import java.sql.SQLClientInfoException;
+import java.sql.SQLException;
+import java.sql.SQLWarning;
+import java.sql.SQLXML;
+import java.sql.Savepoint;
+import java.sql.Statement;
+import java.sql.Struct;
 import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.Executor;
@@ -11,9 +25,7 @@ import java.util.concurrent.Executor;
  */
 public class WrappedConnection implements Connection {
 
-
     private Connection source;
-
 
     public WrappedConnection(Connection source) {
         this.source = source;
@@ -40,13 +52,13 @@ public class WrappedConnection implements Connection {
     }
 
     @Override
-    public void setAutoCommit(boolean autoCommit) throws SQLException {
-        source.setAutoCommit(autoCommit);
+    public boolean getAutoCommit() throws SQLException {
+        return source.getAutoCommit();
     }
 
     @Override
-    public boolean getAutoCommit() throws SQLException {
-        return source.getAutoCommit();
+    public void setAutoCommit(boolean autoCommit) throws SQLException {
+        source.setAutoCommit(autoCommit);
     }
 
     @Override
@@ -75,18 +87,13 @@ public class WrappedConnection implements Connection {
     }
 
     @Override
-    public void setReadOnly(boolean readOnly) throws SQLException {
-        source.setReadOnly(readOnly);
-    }
-
-    @Override
     public boolean isReadOnly() throws SQLException {
         return source.isReadOnly();
     }
 
     @Override
-    public void setCatalog(String catalog) throws SQLException {
-        source.setCatalog(catalog);
+    public void setReadOnly(boolean readOnly) throws SQLException {
+        source.setReadOnly(readOnly);
     }
 
     @Override
@@ -95,13 +102,18 @@ public class WrappedConnection implements Connection {
     }
 
     @Override
-    public void setTransactionIsolation(int level) throws SQLException {
-        source.setTransactionIsolation(level);
+    public void setCatalog(String catalog) throws SQLException {
+        source.setCatalog(catalog);
     }
 
     @Override
     public int getTransactionIsolation() throws SQLException {
         return source.getTransactionIsolation();
+    }
+
+    @Override
+    public void setTransactionIsolation(int level) throws SQLException {
+        source.setTransactionIsolation(level);
     }
 
     @Override
@@ -115,17 +127,20 @@ public class WrappedConnection implements Connection {
     }
 
     @Override
-    public Statement createStatement(int resultSetType, int resultSetConcurrency) throws SQLException {
+    public Statement createStatement(int resultSetType, int resultSetConcurrency)
+        throws SQLException {
         return source.createStatement(resultSetType, resultSetConcurrency);
     }
 
     @Override
-    public PreparedStatement prepareStatement(String sql, int resultSetType, int resultSetConcurrency) throws SQLException {
+    public PreparedStatement prepareStatement(String sql, int resultSetType,
+        int resultSetConcurrency) throws SQLException {
         return source.prepareStatement(sql, resultSetType, resultSetConcurrency);
     }
 
     @Override
-    public CallableStatement prepareCall(String sql, int resultSetType, int resultSetConcurrency) throws SQLException {
+    public CallableStatement prepareCall(String sql, int resultSetType, int resultSetConcurrency)
+        throws SQLException {
         return source.prepareCall(sql, resultSetType, resultSetConcurrency);
     }
 
@@ -140,13 +155,13 @@ public class WrappedConnection implements Connection {
     }
 
     @Override
-    public void setHoldability(int holdability) throws SQLException {
-        source.setHoldability(holdability);
+    public int getHoldability() throws SQLException {
+        return source.getHoldability();
     }
 
     @Override
-    public int getHoldability() throws SQLException {
-        return source.getHoldability();
+    public void setHoldability(int holdability) throws SQLException {
+        source.setHoldability(holdability);
     }
 
     @Override
@@ -170,22 +185,27 @@ public class WrappedConnection implements Connection {
     }
 
     @Override
-    public Statement createStatement(int resultSetType, int resultSetConcurrency, int resultSetHoldability) throws SQLException {
+    public Statement createStatement(int resultSetType, int resultSetConcurrency,
+        int resultSetHoldability) throws SQLException {
         return source.createStatement(resultSetType, resultSetConcurrency, resultSetHoldability);
     }
 
     @Override
-    public PreparedStatement prepareStatement(String sql, int resultSetType, int resultSetConcurrency, int resultSetHoldability) throws SQLException {
-        return source.prepareStatement(sql, resultSetType, resultSetConcurrency, resultSetHoldability);
+    public PreparedStatement prepareStatement(String sql, int resultSetType,
+        int resultSetConcurrency, int resultSetHoldability) throws SQLException {
+        return source.prepareStatement(sql, resultSetType, resultSetConcurrency,
+            resultSetHoldability);
     }
 
     @Override
-    public CallableStatement prepareCall(String sql, int resultSetType, int resultSetConcurrency, int resultSetHoldability) throws SQLException {
+    public CallableStatement prepareCall(String sql, int resultSetType, int resultSetConcurrency,
+        int resultSetHoldability) throws SQLException {
         return source.prepareCall(sql, resultSetType, resultSetConcurrency, resultSetHoldability);
     }
 
     @Override
-    public PreparedStatement prepareStatement(String sql, int autoGeneratedKeys) throws SQLException {
+    public PreparedStatement prepareStatement(String sql, int autoGeneratedKeys)
+        throws SQLException {
         return source.prepareStatement(sql, autoGeneratedKeys);
     }
 
@@ -195,7 +215,8 @@ public class WrappedConnection implements Connection {
     }
 
     @Override
-    public PreparedStatement prepareStatement(String sql, String[] columnNames) throws SQLException {
+    public PreparedStatement prepareStatement(String sql, String[] columnNames)
+        throws SQLException {
         return source.prepareStatement(sql, columnNames);
     }
 
@@ -230,11 +251,6 @@ public class WrappedConnection implements Connection {
     }
 
     @Override
-    public void setClientInfo(Properties properties) throws SQLClientInfoException {
-        source.setClientInfo(properties);
-    }
-
-    @Override
     public String getClientInfo(String name) throws SQLException {
         return source.getClientInfo(name);
     }
@@ -242,6 +258,11 @@ public class WrappedConnection implements Connection {
     @Override
     public Properties getClientInfo() throws SQLException {
         return source.getClientInfo();
+    }
+
+    @Override
+    public void setClientInfo(Properties properties) throws SQLClientInfoException {
+        source.setClientInfo(properties);
     }
 
     @Override
@@ -255,13 +276,13 @@ public class WrappedConnection implements Connection {
     }
 
     @Override
-    public void setSchema(String schema) throws SQLException {
-        source.setSchema(schema);
+    public String getSchema() throws SQLException {
+        return source.getSchema();
     }
 
     @Override
-    public String getSchema() throws SQLException {
-        return source.getSchema();
+    public void setSchema(String schema) throws SQLException {
+        source.setSchema(schema);
     }
 
     @Override

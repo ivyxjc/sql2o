@@ -6,8 +6,7 @@ import java.util.UUID;
  * @author aldenquimby@gmail.com
  * @since 4/6/14
  */
-public class UUIDWrapper
-{
+public class UUIDWrapper {
     private UUID text;
 
     public UUIDWrapper() {
@@ -32,9 +31,7 @@ public class UUIDWrapper
 
         UUIDWrapper that = (UUIDWrapper) o;
 
-        if (text != null ? !text.equals(that.text) : that.text != null) return false;
-
-        return true;
+        return text != null ? text.equals(that.text) : that.text == null;
     }
 
     @Override

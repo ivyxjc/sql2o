@@ -5,7 +5,6 @@ package org.sql2o.quirks;
  */
 public class PostgresQuirksProvider implements QuirksProvider {
 
-
     @Override
     public Quirks provide() {
         return new PostgresQuirks();

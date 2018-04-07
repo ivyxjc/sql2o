@@ -1,7 +1,5 @@
 package org.sql2o.converters;
 
-import org.sql2o.Sql2oException;
-
 import java.util.Map;
 
 /**
@@ -10,5 +8,5 @@ import java.util.Map;
  * Time: 12:53 AM
  */
 public interface ConvertersProvider {
-    void fill(Map<Class<?>,Converter<?>> mapToFill);
+    void fill(Map<Class<?>, Converter<?>> mapToFill);
 }

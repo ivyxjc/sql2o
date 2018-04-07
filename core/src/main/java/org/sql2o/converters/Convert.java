@@ -1,13 +1,5 @@
 package org.sql2o.converters;
 
-import org.joda.time.DateTime;
-import org.joda.time.LocalDate;
-import org.joda.time.LocalTime;
-import org.sql2o.converters.joda.DateTimeConverter;
-import org.sql2o.converters.joda.LocalDateConverter;
-import org.sql2o.converters.joda.LocalTimeConverter;
-import org.sql2o.tools.FeatureDetector;
-
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.math.BigDecimal;
@@ -16,6 +8,13 @@ import java.util.Map;
 import java.util.ServiceLoader;
 import java.util.UUID;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
+import org.joda.time.DateTime;
+import org.joda.time.LocalDate;
+import org.joda.time.LocalTime;
+import org.sql2o.converters.joda.DateTimeConverter;
+import org.sql2o.converters.joda.LocalDateConverter;
+import org.sql2o.converters.joda.LocalTimeConverter;
+import org.sql2o.tools.FeatureDetector;
 
 /**
  * Static class used to register new converters.
@@ -27,8 +26,18 @@ public class Convert {
     private static final ReentrantReadWriteLock rrwl = new ReentrantReadWriteLock();
     private static final ReentrantReadWriteLock.ReadLock rl = rrwl.readLock();
     private static final ReentrantReadWriteLock.WriteLock wl = rrwl.writeLock();
-    private static volatile EnumConverterFactory registeredEnumConverterFactory = new DefaultEnumConverterFactory();
-    private static Map<Class<?>, Converter<?>> registeredConverters = new HashMap<Class<?>, Converter<?>>();
+    private static volatile EnumConverterFactory registeredEnumConverterFactory =
+        new DefaultEnumConverterFactory();
+    private static Map<Class<?>, Converter<?>> registeredConverters =
+        new HashMap<Class<?>, Converter<?>>();
+
+    static {
+        fillDefaults(registeredConverters);
+        ServiceLoader<ConvertersProvider> loader = ServiceLoader.load(ConvertersProvider.class);
+        for (ConvertersProvider provider : loader) {
+            processProvider(provider);
+        }
+    }
 
     private static void processProvider(ConvertersProvider convertersProvider) {
         convertersProvider.fill(registeredConverters);
@@ -57,28 +66,28 @@ public class Convert {
 
         mapToFill.put(String.class, new StringConverter());
 
-        mapToFill.put(java.util.Date.class,DateConverter.instance);
+        mapToFill.put(java.util.Date.class, DateConverter.instance);
         mapToFill.put(java.sql.Date.class,
-                new AbstractDateConverter<java.sql.Date>(java.sql.Date.class) {
-                    @Override
-                    protected java.sql.Date fromMilliseconds(long millisecond) {
-                        return new java.sql.Date(millisecond);
-                    }
-                });
+            new AbstractDateConverter<java.sql.Date>(java.sql.Date.class) {
+                @Override
+                protected java.sql.Date fromMilliseconds(long millisecond) {
+                    return new java.sql.Date(millisecond);
+                }
+            });
         mapToFill.put(java.sql.Time.class,
-                new AbstractDateConverter<java.sql.Time>(java.sql.Time.class) {
-                    @Override
-                    protected java.sql.Time fromMilliseconds(long millisecond) {
-                        return new java.sql.Time(millisecond);
-                    }
-                });
+            new AbstractDateConverter<java.sql.Time>(java.sql.Time.class) {
+                @Override
+                protected java.sql.Time fromMilliseconds(long millisecond) {
+                    return new java.sql.Time(millisecond);
+                }
+            });
         mapToFill.put(java.sql.Timestamp.class,
-                new AbstractDateConverter<java.sql.Timestamp>(java.sql.Timestamp.class) {
-                    @Override
-                    protected java.sql.Timestamp fromMilliseconds(long millisecond) {
-                        return new java.sql.Timestamp(millisecond);
-                    }
-                });
+            new AbstractDateConverter<java.sql.Timestamp>(java.sql.Timestamp.class) {
+                @Override
+                protected java.sql.Timestamp fromMilliseconds(long millisecond) {
+                    return new java.sql.Timestamp(millisecond);
+                }
+            });
 
         BooleanConverter booleanConverter = new BooleanConverter();
         mapToFill.put(Boolean.class, booleanConverter);
@@ -105,22 +114,14 @@ public class Convert {
         }
     }
 
-
-    static {
-        fillDefaults(registeredConverters);
-        ServiceLoader<ConvertersProvider> loader = ServiceLoader.load(ConvertersProvider.class);
-        for (ConvertersProvider provider : loader) {
-            processProvider(provider);
-        }
-    }
-
     @SuppressWarnings("UnusedDeclaration")
     @Deprecated
     public static Converter getConverter(Class clazz) throws ConverterException {
         return throwIfNull(clazz, getConverterIfExists(clazz));
     }
 
-    public static <E> Converter<E> throwIfNull(Class<E> clazz, Converter<E> converter) throws ConverterException {
+    public static <E> Converter<E> throwIfNull(Class<E> clazz, Converter<E> converter)
+        throws ConverterException {
         if (converter == null) {
             throw new ConverterException("No converter registered for class: " + clazz.getName());
         }
@@ -153,7 +154,6 @@ public class Convert {
             wl.unlock();
         }
     }
-
 
     private static void registerConverter0(Class clazz, Converter converter) {
         registeredConverters.put(clazz, converter);

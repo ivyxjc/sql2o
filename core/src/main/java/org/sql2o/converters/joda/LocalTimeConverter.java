@@ -1,10 +1,9 @@
 package org.sql2o.converters.joda;
 
+import java.sql.Timestamp;
 import org.joda.time.LocalTime;
 import org.sql2o.converters.Converter;
 import org.sql2o.converters.ConverterException;
-
-import java.sql.Timestamp;
 
 /**
  * Created by lars on 12/18/13.
@@ -21,7 +20,11 @@ public class LocalTimeConverter implements Converter<LocalTime> {
             // look @ org.joda.time.convert.ConverterManager
             return new LocalTime(val);
         } catch (IllegalArgumentException ex) {
-            throw new ConverterException("Don't know how to convert from type '" + val.getClass().getName() + "' to type '" + LocalTime.class.getName() + "'", ex);
+            throw new ConverterException("Don't know how to convert from type '"
+                + val.getClass().getName()
+                + "' to type '"
+                + LocalTime.class.getName()
+                + "'", ex);
         }
     }
 

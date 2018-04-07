@@ -1,5 +1,8 @@
 package org.sql2o.issues;
 
+import java.util.HashMap;
+import java.util.UUID;
+import javax.sql.DataSource;
 import org.h2.jdbcx.JdbcDataSource;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
@@ -14,11 +17,10 @@ import org.sql2o.data.Table;
 import org.sql2o.quirks.H2Quirks;
 import org.sql2o.quirks.NoQuirks;
 
-import javax.sql.DataSource;
-import java.util.HashMap;
-import java.util.UUID;
-
-import static org.hamcrest.CoreMatchers.*;
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.CoreMatchers.instanceOf;
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.nullValue;
 import static org.junit.Assert.assertThat;
 
 /**
@@ -34,7 +36,7 @@ public class H2Tests {
     String pass;
 
     @Before
-    public void setUp() throws Exception {
+    public void setUp() {
         driverClassName = "org.h2.Driver";
         url = "jdbc:h2:mem:test;DB_CLOSE_DELAY=-1";
         user = "sa";
@@ -50,7 +52,6 @@ public class H2Tests {
     @Test
     public void testIssue155() {
 
-
         Sql2o sql2o = new Sql2o(ds, new NoQuirks(new HashMap<Class, Converter>() {{
             put(DateTime.class, new DateTimeConverter(DateTimeZone.getDefault()));
         }}));
@@ -65,7 +66,7 @@ public class H2Tests {
     }
 
     @Test
-    public void testIssue172NPEWhenCreatingBasicDataSourceInline(){
+    public void testIssue172NPEWhenCreatingBasicDataSourceInline() {
 
         DataSource ds = new JdbcDataSource() {{
             setURL(url);
@@ -82,29 +83,30 @@ public class H2Tests {
      * Ref issue #73
      */
     @Test
-    public void testUUID()  {
+    public void testUUID() {
 
         try (Connection connection = new Sql2o(ds).beginTransaction()) {
-            connection.createQuery("create table uuidtest(id uuid primary key, val uuid null)").executeUpdate();
+            connection.createQuery("create table uuidtest(id uuid primary key, val uuid null)")
+                .executeUpdate();
 
             UUID uuid1 = UUID.randomUUID();
             UUID uuid2 = UUID.randomUUID();
             UUID uuid3 = UUID.randomUUID();
             UUID uuid4 = null;
 
-            Query insQuery = connection.createQuery("insert into uuidtest(id, val) values (:id, :val)");
+            Query insQuery =
+                connection.createQuery("insert into uuidtest(id, val) values (:id, :val)");
             insQuery.addParameter("id", uuid1).addParameter("val", uuid2).executeUpdate();
             insQuery.addParameter("id", uuid3).addParameter("val", uuid4).executeUpdate();
 
             Table table = connection.createQuery("select * from uuidtest").executeAndFetchTable();
 
-            assertThat((UUID)table.rows().get(0).getObject("id"), is(equalTo(uuid1)));
-            assertThat((UUID)table.rows().get(0).getObject("val"), is(equalTo(uuid2)));
-            assertThat((UUID)table.rows().get(1).getObject("id"), is(equalTo(uuid3)));
+            assertThat((UUID) table.rows().get(0).getObject("id"), is(equalTo(uuid1)));
+            assertThat((UUID) table.rows().get(0).getObject("val"), is(equalTo(uuid2)));
+            assertThat((UUID) table.rows().get(1).getObject("id"), is(equalTo(uuid3)));
             assertThat(table.rows().get(1).getObject("val"), is(nullValue()));
 
             connection.rollback();
         }
-
     }
 }

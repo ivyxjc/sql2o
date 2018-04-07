@@ -8,17 +8,17 @@ package org.sql2o.tools;
 @SuppressWarnings("UnusedDeclaration")
 public final class FeatureDetector {
 
-    private FeatureDetector()
-    {}
+    private static Boolean jodaTimeAvailable;
+    private static Boolean slf4jAvailable;
+    private static Boolean oracleAvailable;
+    private static boolean cacheUnderscoreToCamelcaseEnabled;
 
     static {
         setCacheUnderscoreToCamelcaseEnabled(true); // enabled by default
     }
 
-    private static Boolean jodaTimeAvailable;
-    private static Boolean slf4jAvailable;
-    private static Boolean oracleAvailable;
-    private static boolean cacheUnderscoreToCamelcaseEnabled;
+    private FeatureDetector() {
+    }
 
     /**
      * @return {@code true} if Joda-Time is available, {@code false} otherwise.
@@ -51,7 +51,6 @@ public final class FeatureDetector {
     }
 
     /**
-     *
      * @return {@code true} if caching of underscore to camelcase is enabled.
      */
     public static boolean isCacheUnderscoreToCamelcaseEnabled() {
@@ -61,7 +60,8 @@ public final class FeatureDetector {
     /**
      * Turn caching of underscore to camelcase on or off.
      */
-    public static void setCacheUnderscoreToCamelcaseEnabled(boolean cacheUnderscoreToCamelcaseEnabled) {
+    public static void setCacheUnderscoreToCamelcaseEnabled(
+        boolean cacheUnderscoreToCamelcaseEnabled) {
         FeatureDetector.cacheUnderscoreToCamelcaseEnabled = cacheUnderscoreToCamelcaseEnabled;
     }
 }

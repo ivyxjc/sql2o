@@ -1,10 +1,9 @@
 package org.sql2o.converters;
 
-import oracle.sql.TIMESTAMP;
-
 import java.sql.SQLException;
 import java.util.Date;
 import java.util.Map;
+import oracle.sql.TIMESTAMP;
 
 /**
  * Created by lars on 01.05.14.
@@ -15,9 +14,10 @@ public class OracleDateConverter extends DateConverter implements ConvertersProv
 
         if (val instanceof TIMESTAMP) {
             try {
-                return ((TIMESTAMP)val).timestampValue();
+                return ((TIMESTAMP) val).timestampValue();
             } catch (SQLException e) {
-                throw new ConverterException("Error trying to convert oracle.sql.TIMESTAMP to DateTime", e);
+                throw new ConverterException(
+                    "Error trying to convert oracle.sql.TIMESTAMP to DateTime", e);
             }
         }
 
@@ -26,6 +26,6 @@ public class OracleDateConverter extends DateConverter implements ConvertersProv
 
     @Override
     public void fill(Map<Class<?>, Converter<?>> mapToFill) {
-        mapToFill.put(Date.class,  new OracleDateConverter());
+        mapToFill.put(Date.class, new OracleDateConverter());
     }
 }

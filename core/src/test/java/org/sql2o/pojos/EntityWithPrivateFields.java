@@ -8,20 +8,20 @@ package org.sql2o.pojos;
  * To change this template use File | Settings | File Templates.
  */
 public class EntityWithPrivateFields {
-    
+
     private int id;
-    
+
     private String value;
-    
-    public int getId(){
+
+    public int getId() {
         return id;
     }
-    
-    private void setValue(String value){
-        this.value = value + "1";
-    }
-    
-    public String getValue(){
+
+    public String getValue() {
         return value;
+    }
+
+    private void setValue(String value) {
+        this.value = value + "1";
     }
 }

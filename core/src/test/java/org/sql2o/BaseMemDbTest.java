@@ -10,12 +10,9 @@
 
 package org.sql2o;
 
-import org.hsqldb.jdbcDriver;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
-
 import java.util.Arrays;
 import java.util.Collection;
+import org.junit.runners.Parameterized;
 
 /**
  * Created by lars on 01.11.14.
@@ -23,7 +20,29 @@ import java.util.Collection;
 
 public class BaseMemDbTest {
 
-    public enum DbType{
+    protected final DbType dbType;
+    protected final Sql2o sql2o;
+
+    public BaseMemDbTest(DbType dbType, String testName) {
+        this.dbType = dbType;
+        this.sql2o = new Sql2o(dbType.url, dbType.user, dbType.pass);
+
+        if (dbType == DbType.HyperSQL) {
+            try (Connection con = sql2o.open()) {
+                con.createQuery("set database sql syntax MSS true").executeUpdate();
+            }
+        }
+    }
+
+    @Parameterized.Parameters(name = "{index} - {2}")
+    public static Collection<Object[]> getData() {
+        return Arrays.asList(new Object[][] {
+            {DbType.H2, "H2 test"},
+            {DbType.HyperSQL, "HyperSQL Test"}
+        });
+    }
+
+    public enum DbType {
         H2("jdbc:h2:mem:test;DB_CLOSE_DELAY=-1", "sa", ""),
         HyperSQL("jdbc:hsqldb:mem:testmemdb", "SA", "");
 
@@ -35,28 +54,6 @@ public class BaseMemDbTest {
             this.url = url;
             this.user = user;
             this.pass = pass;
-        }
-    }
-
-    @Parameterized.Parameters(name = "{index} - {2}")
-    public static Collection<Object[]> getData(){
-        return Arrays.asList(new Object[][]{
-                {DbType.H2, "H2 test"},
-                {DbType.HyperSQL, "HyperSQL Test"}
-        });
-    }
-
-    protected final DbType dbType;
-    protected final Sql2o sql2o;
-
-    public BaseMemDbTest(DbType dbType, String testName) {
-        this.dbType = dbType;
-        this.sql2o = new Sql2o(dbType.url, dbType.user, dbType.pass);
-
-        if (dbType == DbType.HyperSQL) {
-            try (Connection con = sql2o.open()){
-                con.createQuery("set database sql syntax MSS true").executeUpdate();
-            }
         }
     }
 }

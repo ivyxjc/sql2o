@@ -19,7 +19,11 @@ public class LocalDateConverter implements Converter<LocalDate> {
             // look @ org.joda.time.convert.ConverterManager
             return new LocalDate(val);
         } catch (IllegalArgumentException ex) {
-            throw new ConverterException("Don't know how to convert from type '" + val.getClass().getName() + "' to type '" + LocalDate.class.getName() + "'", ex);
+            throw new ConverterException("Don't know how to convert from type '"
+                + val.getClass().getName()
+                + "' to type '"
+                + LocalDate.class.getName()
+                + "'", ex);
         }
     }
 

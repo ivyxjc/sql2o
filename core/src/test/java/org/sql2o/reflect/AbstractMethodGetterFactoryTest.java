@@ -1,18 +1,59 @@
 package org.sql2o.reflect;
 
-import junit.framework.TestCase;
-
-import org.sql2o.reflection.Getter;
-import org.sql2o.reflection.MethodGetterFactory;
-
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import junit.framework.TestCase;
+import org.sql2o.reflection.Getter;
+import org.sql2o.reflection.MethodGetterFactory;
 
 /**
  * @author mdelapenya
  */
 public abstract class AbstractMethodGetterFactoryTest extends TestCase {
-    public static class POJO1{
+    public final MethodGetterFactory mgf;
+
+    public AbstractMethodGetterFactoryTest(MethodGetterFactory mgf) {
+        this.mgf = mgf;
+    }
+
+    public void testAllTypes() throws IllegalAccessException, NoSuchFieldException {
+        POJO1 pojo = new POJO1();
+        pojo._boolean = true;
+        pojo._byte = 17;
+        pojo._short = 87;
+        pojo._int = Integer.MIN_VALUE;
+        pojo._long = 1337;
+        pojo._char = 'a';
+        pojo._double = Math.PI;
+        pojo._float = (float) Math.log(93);
+        pojo._obj = pojo;
+
+        Method[] methods = pojo.getClass().getDeclaredMethods();
+        for (Method method : methods) {
+            if (!method.getName().startsWith("get_")) continue;
+
+            Field field = pojo.getClass()
+                .getDeclaredField(method.getName().substring(3));
+
+            Getter getter = mgf.newGetter(method);
+            assertSame(field.getType(), getter.getType());
+
+            Object val1 = field.get(pojo);
+            assertEquals(val1, getter.getProperty(pojo));
+        }
+    }
+
+    public static class POJO1 {
+        boolean _boolean;
+        byte _byte;
+        short _short;
+        int _int;
+        long _long;
+        float _float;
+        double _double;
+        char _char;
+        Object _obj;
+
         public boolean get_boolean() {
             return this._boolean;
         }
@@ -49,16 +90,6 @@ public abstract class AbstractMethodGetterFactoryTest extends TestCase {
             return this._obj;
         }
 
-        boolean _boolean;
-        byte _byte;
-        short _short;
-        int _int;
-        long _long;
-        float _float;
-        double _double;
-        char _char;
-        Object _obj;
-
         @Override
         public boolean equals(Object o) {
             if (this == o) return true;
@@ -74,44 +105,7 @@ public abstract class AbstractMethodGetterFactoryTest extends TestCase {
             if (_int != pojo1._int) return false;
             if (_long != pojo1._long) return false;
             if (_short != pojo1._short) return false;
-            if (_obj != null ? !_obj.equals(pojo1._obj) : pojo1._obj != null) return false;
-
-            return true;
+            return _obj != null ? _obj.equals(pojo1._obj) : pojo1._obj == null;
         }
-    }
-
-
-    public void testAllTypes() throws IllegalAccessException, NoSuchFieldException {
-        POJO1 pojo = new POJO1();
-        pojo._boolean = true;
-        pojo._byte = 17;
-        pojo._short=87;
-        pojo._int= Integer.MIN_VALUE;
-        pojo._long= 1337;
-        pojo._char='a';
-        pojo._double=Math.PI;
-        pojo._float= (float) Math.log(93);
-        pojo._obj = pojo;
-
-        Method[] methods = pojo.getClass().getDeclaredMethods();
-        for (Method method : methods) {
-            if(!method.getName().startsWith("get_")) continue;
-
-            Field field = pojo.getClass()
-                    .getDeclaredField(method.getName().substring(3));
-
-            Getter getter = mgf.newGetter(method);
-            assertSame(field.getType(),getter.getType());
-
-            Object val1 = field.get(pojo);
-            assertEquals(val1, getter.getProperty(pojo));
-        }
-    }
-
-
-    public  final MethodGetterFactory mgf;
-
-    public AbstractMethodGetterFactoryTest(MethodGetterFactory mgf) {
-        this.mgf = mgf;
     }
 }

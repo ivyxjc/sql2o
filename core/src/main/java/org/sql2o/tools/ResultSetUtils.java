@@ -14,7 +14,9 @@ public class ResultSetUtils {
 
         // oracle timestamps are not always convertible to a java Date. If ResultSet.getTimestamp is used instead of
         // ResultSet.getObject, a normal java.sql.Timestamp instance is returnd.
-        if (o != null && FeatureDetector.isOracleAvailable() && o.getClass().getCanonicalName().startsWith("oracle.sql.TIMESTAMP")){
+        if (o != null && FeatureDetector.isOracleAvailable() && o.getClass()
+            .getCanonicalName()
+            .startsWith("oracle.sql.TIMESTAMP")) {
             o = rs.getTimestamp(idx);
         }
 

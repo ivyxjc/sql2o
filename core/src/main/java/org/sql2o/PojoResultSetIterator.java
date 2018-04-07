@@ -1,9 +1,8 @@
 package org.sql2o;
 
-import org.sql2o.quirks.Quirks;
-
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import org.sql2o.quirks.Quirks;
 
 /**
  * Iterator for a {@link java.sql.ResultSet}. Tricky part here is getting {@link #hasNext()}
@@ -14,7 +13,8 @@ import java.sql.SQLException;
 public class PojoResultSetIterator<T> extends ResultSetIteratorBase<T> {
     private ResultSetHandler<T> handler;
 
-    public PojoResultSetIterator(ResultSet rs, boolean isCaseSensitive, Quirks quirks, ResultSetHandlerFactory<T> factory) {
+    public PojoResultSetIterator(ResultSet rs, boolean isCaseSensitive, Quirks quirks,
+        ResultSetHandlerFactory<T> factory) {
         super(rs, isCaseSensitive, quirks);
         try {
             this.handler = factory.newResultSetHandler(rs.getMetaData());
@@ -23,7 +23,8 @@ public class PojoResultSetIterator<T> extends ResultSetIteratorBase<T> {
         }
     }
 
-    public PojoResultSetIterator(ResultSet rs, boolean isCaseSensitive, Quirks quirks, ResultSetHandler<T> handler) {
+    public PojoResultSetIterator(ResultSet rs, boolean isCaseSensitive, Quirks quirks,
+        ResultSetHandler<T> handler) {
         super(rs, isCaseSensitive, quirks);
         this.handler = handler;
     }
@@ -31,7 +32,5 @@ public class PojoResultSetIterator<T> extends ResultSetIteratorBase<T> {
     @Override
     protected T readNext() throws SQLException {
         return handler.handle(rs);
-
     }
-
 }

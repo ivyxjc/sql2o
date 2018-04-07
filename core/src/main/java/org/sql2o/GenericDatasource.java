@@ -1,12 +1,12 @@
 package org.sql2o;
 
-import javax.sql.DataSource;
 import java.io.PrintWriter;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.sql.SQLFeatureNotSupportedException;
 import java.util.Properties;
+import javax.sql.DataSource;
 
 /**
  * Used internally by sql2o, if the {@link Sql2o#Sql2o(String, String, String)} constructor overload.
@@ -18,13 +18,23 @@ public class GenericDatasource implements DataSource {
 
     public GenericDatasource(String url, String user, String password) {
 
-        if (!url.startsWith("jdbc")){
+        if (!url.startsWith("jdbc")) {
             url = "jdbc:" + url;
         }
 
         this.url = url;
         this.properties = new Properties();
-        set(properties,user,password);
+        set(properties, user, password);
+    }
+
+    public GenericDatasource(String url, Properties properties) {
+
+        if (!url.startsWith("jdbc")) {
+            url = "jdbc:" + url;
+        }
+
+        this.url = url;
+        this.properties = properties;
     }
 
     private void set(Properties info, String user, String password) {
@@ -34,16 +44,6 @@ public class GenericDatasource implements DataSource {
         if (password != null) {
             info.put("password", password);
         }
-    }
-
-    public GenericDatasource(String url, Properties properties) {
-
-        if (!url.startsWith("jdbc")){
-            url = "jdbc:" + url;
-        }
-
-        this.url = url;
-        this.properties = properties;
     }
 
     public String getUrl() {
@@ -64,24 +64,24 @@ public class GenericDatasource implements DataSource {
 
     public Connection getConnection(String username, String password) throws SQLException {
         Properties info = new Properties(this.properties);
-        set(info,username,password);
+        set(info, username, password);
         return DriverManager.getConnection(this.getUrl(), info);
     }
 
-    public PrintWriter getLogWriter() throws SQLException {
+    public PrintWriter getLogWriter() {
         return DriverManager.getLogWriter();
     }
 
-    public void setLogWriter(PrintWriter printWriter) throws SQLException {
+    public void setLogWriter(PrintWriter printWriter) {
         DriverManager.setLogWriter(printWriter);
     }
 
-    public void setLoginTimeout(int i) throws SQLException {
-        DriverManager.setLoginTimeout(i);
+    public int getLoginTimeout() {
+        return DriverManager.getLoginTimeout();
     }
 
-    public int getLoginTimeout() throws SQLException {
-        return DriverManager.getLoginTimeout();
+    public void setLoginTimeout(int i) {
+        DriverManager.setLoginTimeout(i);
     }
 
     public java.util.logging.Logger getParentLogger() throws SQLFeatureNotSupportedException {
@@ -92,7 +92,7 @@ public class GenericDatasource implements DataSource {
         throw new SQLFeatureNotSupportedException();
     }
 
-    public boolean isWrapperFor(Class<?> aClass) throws SQLException {
+    public boolean isWrapperFor(Class<?> aClass) {
         return false;
     }
 }

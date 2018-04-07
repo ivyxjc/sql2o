@@ -1,8 +1,7 @@
 package org.sql2o.quirks;
 
-import org.sql2o.converters.Converter;
-
 import java.util.Map;
+import org.sql2o.converters.Converter;
 
 /**
  * @author aldenquimby@gmail.com
