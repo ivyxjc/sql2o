@@ -38,9 +38,7 @@ public class ByteArrayConverter extends ConverterBase<byte[]> {
                         // ignore blob.free errors
                     }
                 }
-            } catch (SQLException e) {
-                throw new ConverterException("Error converting Blob to byte[]", e);
-            } catch (IOException e) {
+            } catch (SQLException | IOException e) {
                 throw new ConverterException("Error converting Blob to byte[]", e);
             }
         }

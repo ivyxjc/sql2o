@@ -5,5 +5,5 @@ package org.sql2o;
  */
 public interface UserInserter {
 
-    public void insertUser(Query insertQuery, int idx);
+    void insertUser(Query insertQuery, int idx);
 }

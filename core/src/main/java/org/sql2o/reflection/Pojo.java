@@ -49,11 +49,7 @@ public class Pojo {
             if (subValue == null) {
                 try {
                     subValue = getter.getType().newInstance();
-                } catch (InstantiationException e) {
-                    throw new Sql2oException(
-                        "Could not instantiate a new instance of class " + getter.getType()
-                            .toString(), e);
-                } catch (IllegalAccessException e) {
+                } catch (InstantiationException | IllegalAccessException e) {
                     throw new Sql2oException(
                         "Could not instantiate a new instance of class " + getter.getType()
                             .toString(), e);

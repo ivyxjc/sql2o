@@ -635,7 +635,7 @@ public class Sql2oTest extends BaseMemDbTest {
     public void testGlobalDbMappings() {
         Sql2o sql2o1 = new Sql2o(dbType.url, dbType.user, dbType.pass);
 
-        Map<String, String> defaultColMaps = new HashMap<String, String>();
+        Map<String, String> defaultColMaps = new HashMap<>();
         defaultColMaps.put("caption", "text");
         defaultColMaps.put("theTime", "time");
 
@@ -1114,7 +1114,7 @@ public class Sql2oTest extends BaseMemDbTest {
         // read in batches, because maybe we are bulk exporting and can't fit them all into a list
         int totalSize = 0;
         int batchSize = 500;
-        List<User> batch = new ArrayList<User>(batchSize);
+        List<User> batch = new ArrayList<>(batchSize);
         for (User u : allUsers) {
             totalSize++;
             if (batch.size() == batchSize) {
@@ -1730,7 +1730,7 @@ public class Sql2oTest extends BaseMemDbTest {
         @Override
         public List<Integer> run(Connection connection, Object argument) {
             String[] vals = (String[]) argument;
-            List<Integer> keys = new ArrayList<Integer>();
+            List<Integer> keys = new ArrayList<>();
             for (String val : vals) {
                 Integer key = connection.createQuery(
                     "insert into testRunInsideTransactionWithResultTable(value) values(:val)",
@@ -1797,15 +1797,13 @@ public class Sql2oTest extends BaseMemDbTest {
 
         @Override
         public boolean equals(Object obj) {
-            if ((obj != null) && (obj instanceof BindablePojo)) {
+            if ((obj instanceof BindablePojo)) {
                 BindablePojo other = (BindablePojo) obj;
                 /*System.out.println(data1 + " == " + other.data1);
                 System.out.println(data2 + " == " + other.data2);
                 System.out.println(data3 + " == " + other.data3);*/
-                boolean res =
-                    data1.equals(other.data1) && data2.equals(other.data2) && data3.equals(
-                        other.data3);
-                return res;
+                return data1.equals(other.data1) && data2.equals(other.data2) && data3.equals(
+                    other.data3);
             } else {
                 return false;
             }

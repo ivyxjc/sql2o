@@ -62,7 +62,7 @@ public class BidirectionalConverterTest {
     /************** Helper stuff ******************/
 
     private List<UUIDWrapper> randomWrappers() {
-        List<UUIDWrapper> wrappers = new ArrayList<UUIDWrapper>();
+        List<UUIDWrapper> wrappers = new ArrayList<>();
         for (int i = 0; i < 10; i++) {
             wrappers.add(new UUIDWrapper(UUID.randomUUID()));
         }

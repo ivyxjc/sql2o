@@ -215,7 +215,7 @@ public class Connection implements AutoCloseable, Closeable {
             this.keys = null;
             return;
         }
-        this.keys = new ArrayList<Object>();
+        this.keys = new ArrayList<>();
         while (rs.next()) {
             this.keys.add(rs.getObject(1));
         }
@@ -233,7 +233,7 @@ public class Connection implements AutoCloseable, Closeable {
             try {
                 Converter<V> converter = throwIfNull(returnType, quirks.converterOf(returnType));
 
-                List<V> convertedKeys = new ArrayList<V>(this.keys.size());
+                List<V> convertedKeys = new ArrayList<>(this.keys.size());
 
                 for (Object key : this.keys) {
                     convertedKeys.add(converter.convert(key));

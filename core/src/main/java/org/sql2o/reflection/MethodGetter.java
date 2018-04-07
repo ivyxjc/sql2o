@@ -24,12 +24,7 @@ public class MethodGetter implements Getter {
     public Object getProperty(Object obj) {
         try {
             return this.method.invoke(obj);
-        } catch (IllegalAccessException e) {
-            throw new Sql2oException("error while calling getter method with name "
-                + method.getName()
-                + " on class "
-                + obj.getClass().toString(), e);
-        } catch (InvocationTargetException e) {
+        } catch (IllegalAccessException | InvocationTargetException e) {
             throw new Sql2oException("error while calling getter method with name "
                 + method.getName()
                 + " on class "

@@ -28,7 +28,7 @@ public class NamedParameterTest extends TestCase {
      expression::type
      */
     public void testPostgresSqlCastSyntax() {
-        Map<String, List<Integer>> map = new HashMap<String, List<Integer>>();
+        Map<String, List<Integer>> map = new HashMap<>();
         String preparedQuery = sqlParameterParsingStrategy.parseSql("select :foo", map);
         assertEquals("select ?", preparedQuery);
         assertThat(map.size(), is(equalTo(1)));
@@ -41,7 +41,7 @@ public class NamedParameterTest extends TestCase {
     }
 
     public void testStringConstant() {
-        Map<String, List<Integer>> map = new HashMap<String, List<Integer>>();
+        Map<String, List<Integer>> map = new HashMap<>();
         String preparedQuery = sqlParameterParsingStrategy.parseSql("select ':foo'", map);
         assertEquals("select ':foo'", preparedQuery);
     }

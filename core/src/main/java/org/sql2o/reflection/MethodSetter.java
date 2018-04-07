@@ -25,12 +25,7 @@ public class MethodSetter implements Setter {
         }
         try {
             this.method.invoke(obj, value);
-        } catch (IllegalAccessException e) {
-            throw new Sql2oException("error while calling setter method with name "
-                + method.getName()
-                + " on class "
-                + obj.getClass().toString(), e);
-        } catch (InvocationTargetException e) {
+        } catch (IllegalAccessException | InvocationTargetException e) {
             throw new Sql2oException("error while calling setter method with name "
                 + method.getName()
                 + " on class "

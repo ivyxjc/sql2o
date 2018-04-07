@@ -34,7 +34,7 @@ public class PojoIntrospector {
         };
 
     private static Map<String, ReadableProperty> collectReadableProperties(Class<?> cls) {
-        Map<String, ReadableProperty> map = new HashMap<String, ReadableProperty>();
+        Map<String, ReadableProperty> map = new HashMap<>();
         List<Class<?>> classList = classInheritanceHierarhy(cls, Object.class);
         for (Class<?> aClass : classList) {
             collectPropertyGetters(map, aClass);
@@ -101,7 +101,7 @@ public class PojoIntrospector {
     }
 
     private static List<Class<?>> classInheritanceHierarhy(Class<?> cls, Class<Object> stopAt) {
-        ArrayList<Class<?>> list = new ArrayList<Class<?>>();
+        ArrayList<Class<?>> list = new ArrayList<>();
         while (cls != null && cls != stopAt) {
             list.add(cls);
             cls = cls.getSuperclass();

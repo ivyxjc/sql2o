@@ -142,9 +142,7 @@ public class PojoPerformanceTest {
             Field f = FeatureDetector.class.getDeclaredField("oracleAvailable");
             f.setAccessible(true);
             f.set(null, b);
-        } catch (NoSuchFieldException e) {
-            e.printStackTrace();
-        } catch (IllegalAccessException e) {
+        } catch (NoSuchFieldException | IllegalAccessException e) {
             e.printStackTrace();
         }
     }
@@ -414,7 +412,7 @@ public class PojoPerformanceTest {
         @Override
         public void init() {
             runner = new QueryRunner();
-            rsHandler = new BeanHandler<Post>(Post.class,
+            rsHandler = new BeanHandler<>(Post.class,
                 new BasicRowProcessor(new IgnoreUnderscoreBeanProcessor()));
             conn = sql2o.open().getJdbcConnection();
         }
@@ -512,7 +510,7 @@ public class PojoPerformanceTest {
         public void run(int input) {
             jdbcTemplate.queryForObject(SELECT_TYPICAL + " WHERE id = :id",
                 Collections.singletonMap("id", input),
-                new BeanPropertyRowMapper<Post>(Post.class));
+                new BeanPropertyRowMapper<>(Post.class));
         }
 
         @Override

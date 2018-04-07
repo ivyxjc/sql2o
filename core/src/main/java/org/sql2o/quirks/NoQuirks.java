@@ -31,7 +31,7 @@ public class NoQuirks implements Quirks {
         // protective copy
         // to avoid someone change this collection outside
         // so this makes converters thread-safe
-        this.converters = new HashMap<Class, Converter>(converters);
+        this.converters = new HashMap<>(converters);
     }
 
     public NoQuirks() {

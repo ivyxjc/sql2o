@@ -21,8 +21,8 @@ public class TableResultSetIterator extends ResultSetIteratorBase<Row> {
         LazyTable lt) {
         super(rs, isCaseSensitive, quirks);
 
-        this.columnNameToIdxMap = new HashMap<String, Integer>();
-        this.columns = new ArrayList<Column>();
+        this.columnNameToIdxMap = new HashMap<>();
+        this.columns = new ArrayList<>();
 
         try {
             lt.setName(meta.getTableName(1));

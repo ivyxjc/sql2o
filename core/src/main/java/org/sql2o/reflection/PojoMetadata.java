@@ -81,9 +81,9 @@ public class PojoMetadata {
 
     private PropertyAndFieldInfo initializePropertyInfo() {
 
-        HashMap<String, Getter> propertyGetters = new HashMap<String, Getter>();
-        HashMap<String, Setter> propertySetters = new HashMap<String, Setter>();
-        HashMap<String, Field> fields = new HashMap<String, Field>();
+        HashMap<String, Getter> propertyGetters = new HashMap<>();
+        HashMap<String, Setter> propertySetters = new HashMap<>();
+        HashMap<String, Field> fields = new HashMap<>();
 
         boolean isJpaColumnInClasspath = false;
         try {

@@ -29,7 +29,7 @@ public class Convert {
     private static volatile EnumConverterFactory registeredEnumConverterFactory =
         new DefaultEnumConverterFactory();
     private static Map<Class<?>, Converter<?>> registeredConverters =
-        new HashMap<Class<?>, Converter<?>>();
+        new HashMap<>();
 
     static {
         fillDefaults(registeredConverters);

@@ -80,7 +80,7 @@ public class Sql2o {
     public Sql2o(DataSource dataSource, Quirks quirks) {
         this.connectionSource = new DataSourceConnectionSource(dataSource);
         this.quirks = quirks;
-        this.defaultColumnMappings = new HashMap<String, String>();
+        this.defaultColumnMappings = new HashMap<>();
     }
 
     public Quirks getQuirks() {
@@ -220,16 +220,10 @@ public class Sql2o {
      */
     @SuppressWarnings("unchecked")
     public <V> V withConnection(StatementRunnableWithResult<V> runnable, Object argument) {
-        Connection connection = null;
-        try {
-            connection = open();
+        try (Connection connection = open()) {
             return runnable.run(connection, argument);
         } catch (Throwable t) {
             throw new Sql2oException("An error occurred while executing StatementRunnable", t);
-        } finally {
-            if (connection != null) {
-                connection.close();
-            }
         }
     }
 
@@ -254,17 +248,11 @@ public class Sql2o {
      * the connection is closed properly, when either the run method completes or if an exception occurs.
      */
     public void withConnection(StatementRunnable runnable, Object argument) {
-        Connection connection = null;
-        try {
-            connection = open();
+        try (Connection connection = open()) {
 
             runnable.run(connection, argument);
         } catch (Throwable t) {
             throw new Sql2oException("An error occurred while executing StatementRunnable", t);
-        } finally {
-            if (connection != null) {
-                connection.close();
-            }
         }
     }
 
