@@ -18,6 +18,7 @@ public class MethodSetter implements Setter {
         type = method.getParameterTypes()[0];
     }
 
+    @Override
     public void setProperty(Object obj, Object value) {
         if (value == null && type.isPrimitive()) {
             return; // dont try to set null to a setter to a primitive type.
@@ -37,6 +38,7 @@ public class MethodSetter implements Setter {
         }
     }
 
+    @Override
     public Class getType() {
         return type;
     }

@@ -35,6 +35,7 @@ public abstract class ResultSetIteratorBase<T> implements Iterator<T> {
         }
     }
 
+    @Override
     public boolean hasNext() {
         // check if we already fetched next item
         if (next != null) {
@@ -60,6 +61,7 @@ public abstract class ResultSetIteratorBase<T> implements Iterator<T> {
         return false;
     }
 
+    @Override
     public T next() {
         if (!hasNext()) {
             throw new NoSuchElementException();
@@ -72,6 +74,7 @@ public abstract class ResultSetIteratorBase<T> implements Iterator<T> {
         return result;
     }
 
+    @Override
     public void remove() {
         throw new UnsupportedOperationException();
     }

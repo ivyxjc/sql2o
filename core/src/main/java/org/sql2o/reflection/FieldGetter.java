@@ -17,6 +17,7 @@ public class FieldGetter implements Getter {
         this.field.setAccessible(true);
     }
 
+    @Override
     public Object getProperty(Object obj) {
         try {
             return this.field.get(obj);
@@ -27,6 +28,7 @@ public class FieldGetter implements Getter {
         }
     }
 
+    @Override
     public Class getType() {
         return field.getType();
     }

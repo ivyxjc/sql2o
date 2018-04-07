@@ -13,6 +13,7 @@ import org.sql2o.tools.IOUtils;
  */
 public class ByteArrayConverter extends ConverterBase<byte[]> {
 
+    @Override
     public byte[] convert(Object val) throws ConverterException {
         if (val == null) return null;
 

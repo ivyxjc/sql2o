@@ -25,6 +25,7 @@ public class UnsafeFieldGetterFactory implements FieldGetterFactory, ObjectConst
 
     public static ObjectConstructor getConstructor(final Class<?> clazz) {
         return new ObjectConstructor() {
+            @Override
             public Object newInstance() {
                 try {
                     return theUnsafe.allocateInstance(clazz);
@@ -36,6 +37,7 @@ public class UnsafeFieldGetterFactory implements FieldGetterFactory, ObjectConst
         };
     }
 
+    @Override
     public Getter newGetter(final Field field) {
         final Class type = field.getType();
         final boolean isStatic = Modifier.isStatic(field.getModifiers());
@@ -47,10 +49,12 @@ public class UnsafeFieldGetterFactory implements FieldGetterFactory, ObjectConst
         if (!Modifier.isVolatile(field.getModifiers())) {
             if (type == Boolean.TYPE) {
                 return new Getter() {
+                    @Override
                     public Object getProperty(Object obj) {
                         return theUnsafe.getBoolean(obj, offset);
                     }
 
+                    @Override
                     public Class getType() {
                         return Boolean.TYPE;
                     }
@@ -59,10 +63,12 @@ public class UnsafeFieldGetterFactory implements FieldGetterFactory, ObjectConst
 
             if (type == Character.TYPE) {
                 return new Getter() {
+                    @Override
                     public Object getProperty(Object obj) {
                         return theUnsafe.getChar(obj, offset);
                     }
 
+                    @Override
                     public Class getType() {
                         return Character.TYPE;
                     }
@@ -71,10 +77,12 @@ public class UnsafeFieldGetterFactory implements FieldGetterFactory, ObjectConst
 
             if (type == Byte.TYPE) {
                 return new Getter() {
+                    @Override
                     public Object getProperty(Object obj) {
                         return theUnsafe.getByte(obj, offset);
                     }
 
+                    @Override
                     public Class getType() {
                         return Byte.TYPE;
                     }
@@ -83,10 +91,12 @@ public class UnsafeFieldGetterFactory implements FieldGetterFactory, ObjectConst
 
             if (type == Short.TYPE) {
                 return new Getter() {
+                    @Override
                     public Object getProperty(Object obj) {
                         return theUnsafe.getShort(obj, offset);
                     }
 
+                    @Override
                     public Class getType() {
                         return Short.TYPE;
                     }
@@ -95,10 +105,12 @@ public class UnsafeFieldGetterFactory implements FieldGetterFactory, ObjectConst
 
             if (type == Integer.TYPE) {
                 return new Getter() {
+                    @Override
                     public Object getProperty(Object obj) {
                         return theUnsafe.getInt(obj, offset);
                     }
 
+                    @Override
                     public Class getType() {
                         return Integer.TYPE;
                     }
@@ -107,10 +119,12 @@ public class UnsafeFieldGetterFactory implements FieldGetterFactory, ObjectConst
 
             if (type == Long.TYPE) {
                 return new Getter() {
+                    @Override
                     public Object getProperty(Object obj) {
                         return theUnsafe.getLong(obj, offset);
                     }
 
+                    @Override
                     public Class getType() {
                         return Long.TYPE;
                     }
@@ -119,10 +133,12 @@ public class UnsafeFieldGetterFactory implements FieldGetterFactory, ObjectConst
 
             if (type == Float.TYPE) {
                 return new Getter() {
+                    @Override
                     public Object getProperty(Object obj) {
                         return theUnsafe.getFloat(obj, offset);
                     }
 
+                    @Override
                     public Class getType() {
                         return Float.TYPE;
                     }
@@ -130,20 +146,24 @@ public class UnsafeFieldGetterFactory implements FieldGetterFactory, ObjectConst
             }
             if (type == Double.TYPE) {
                 return new Getter() {
+                    @Override
                     public Object getProperty(Object obj) {
                         return theUnsafe.getDouble(obj, offset);
                     }
 
+                    @Override
                     public Class getType() {
                         return Double.TYPE;
                     }
                 };
             }
             return new Getter() {
+                @Override
                 public Object getProperty(Object obj) {
                     return theUnsafe.getObject(obj, offset);
                 }
 
+                @Override
                 public Class getType() {
                     return type;
                 }
@@ -152,10 +172,12 @@ public class UnsafeFieldGetterFactory implements FieldGetterFactory, ObjectConst
 
         if (type == Boolean.TYPE) {
             return new Getter() {
+                @Override
                 public Object getProperty(Object obj) {
                     return theUnsafe.getBooleanVolatile(obj, offset);
                 }
 
+                @Override
                 public Class getType() {
                     return Boolean.TYPE;
                 }
@@ -163,10 +185,12 @@ public class UnsafeFieldGetterFactory implements FieldGetterFactory, ObjectConst
         }
         if (type == Character.TYPE) {
             return new Getter() {
+                @Override
                 public Object getProperty(Object obj) {
                     return theUnsafe.getCharVolatile(obj, offset);
                 }
 
+                @Override
                 public Class getType() {
                     return Character.TYPE;
                 }
@@ -174,10 +198,12 @@ public class UnsafeFieldGetterFactory implements FieldGetterFactory, ObjectConst
         }
         if (type == Byte.TYPE) {
             return new Getter() {
+                @Override
                 public Object getProperty(Object obj) {
                     return theUnsafe.getByteVolatile(obj, offset);
                 }
 
+                @Override
                 public Class getType() {
                     return Byte.TYPE;
                 }
@@ -185,10 +211,12 @@ public class UnsafeFieldGetterFactory implements FieldGetterFactory, ObjectConst
         }
         if (type == Short.TYPE) {
             return new Getter() {
+                @Override
                 public Object getProperty(Object obj) {
                     return theUnsafe.getShortVolatile(obj, offset);
                 }
 
+                @Override
                 public Class getType() {
                     return Short.TYPE;
                 }
@@ -196,10 +224,12 @@ public class UnsafeFieldGetterFactory implements FieldGetterFactory, ObjectConst
         }
         if (type == Integer.TYPE) {
             return new Getter() {
+                @Override
                 public Object getProperty(Object obj) {
                     return theUnsafe.getIntVolatile(obj, offset);
                 }
 
+                @Override
                 public Class getType() {
                     return Integer.TYPE;
                 }
@@ -207,10 +237,12 @@ public class UnsafeFieldGetterFactory implements FieldGetterFactory, ObjectConst
         }
         if (type == Long.TYPE) {
             return new Getter() {
+                @Override
                 public Object getProperty(Object obj) {
                     return theUnsafe.getLongVolatile(obj, offset);
                 }
 
+                @Override
                 public Class getType() {
                     return Long.TYPE;
                 }
@@ -218,10 +250,12 @@ public class UnsafeFieldGetterFactory implements FieldGetterFactory, ObjectConst
         }
         if (type == Float.TYPE) {
             return new Getter() {
+                @Override
                 public Object getProperty(Object obj) {
                     return theUnsafe.getFloatVolatile(obj, offset);
                 }
 
+                @Override
                 public Class getType() {
                     return Float.TYPE;
                 }
@@ -229,26 +263,31 @@ public class UnsafeFieldGetterFactory implements FieldGetterFactory, ObjectConst
         }
         if (type == Double.TYPE) {
             return new Getter() {
+                @Override
                 public Object getProperty(Object obj) {
                     return theUnsafe.getDoubleVolatile(obj, offset);
                 }
 
+                @Override
                 public Class getType() {
                     return Double.TYPE;
                 }
             };
         }
         return new Getter() {
+            @Override
             public Object getProperty(Object obj) {
                 return theUnsafe.getObjectVolatile(obj, offset);
             }
 
+            @Override
             public Class getType() {
                 return type;
             }
         };
     }
 
+    @Override
     public ObjectConstructor newConstructor(final Class<?> clazz) {
         return getConstructor(clazz);
     }

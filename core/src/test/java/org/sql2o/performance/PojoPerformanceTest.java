@@ -265,6 +265,7 @@ public class PojoPerformanceTest {
     class JOOQSelect extends PerformanceTestBase {
         ResultQuery q;
 
+        @Override
         public void init() {
             DSLContext create;
             try {
@@ -350,6 +351,7 @@ public class PojoPerformanceTest {
             }
         }
 
+        @Override
         public void close() {
             if (stmt != null) {
                 try {

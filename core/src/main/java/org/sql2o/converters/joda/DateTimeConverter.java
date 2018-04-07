@@ -24,6 +24,7 @@ public class DateTimeConverter implements Converter<DateTime> {
         this(DateTimeZone.getDefault());
     }
 
+    @Override
     public DateTime convert(Object val) throws ConverterException {
         if (val == null) {
             return null;
@@ -39,6 +40,7 @@ public class DateTimeConverter implements Converter<DateTime> {
         }
     }
 
+    @Override
     public Object toDatabaseParam(DateTime val) {
         return new Timestamp(val.getMillis());
     }

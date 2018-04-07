@@ -58,40 +58,50 @@ public class GenericDatasource implements DataSource {
         return properties.getProperty("password");
     }
 
+    @Override
     public Connection getConnection() throws SQLException {
         return DriverManager.getConnection(this.getUrl(), properties);
     }
 
-    public Connection getConnection(String username, String password) throws SQLException {
+    @Override
+    public Connection getConnection(String username, String password)
+        throws SQLException {
         Properties info = new Properties(this.properties);
         set(info, username, password);
         return DriverManager.getConnection(this.getUrl(), info);
     }
 
+    @Override
     public PrintWriter getLogWriter() {
         return DriverManager.getLogWriter();
     }
 
+    @Override
     public void setLogWriter(PrintWriter printWriter) {
         DriverManager.setLogWriter(printWriter);
     }
 
+    @Override
     public int getLoginTimeout() {
         return DriverManager.getLoginTimeout();
     }
 
+    @Override
     public void setLoginTimeout(int i) {
         DriverManager.setLoginTimeout(i);
     }
 
+    @Override
     public java.util.logging.Logger getParentLogger() throws SQLFeatureNotSupportedException {
         throw new SQLFeatureNotSupportedException();
     }
 
+    @Override
     public <T> T unwrap(Class<T> tClass) throws SQLException {
         throw new SQLFeatureNotSupportedException();
     }
 
+    @Override
     public boolean isWrapperFor(Class<?> aClass) {
         return false;
     }

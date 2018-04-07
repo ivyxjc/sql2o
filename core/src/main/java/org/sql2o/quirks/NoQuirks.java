@@ -131,6 +131,7 @@ public class NoQuirks implements Quirks {
         }
     }
 
+    @Override
     public void setParameter(PreparedStatement statement, int paramIdx, Boolean value)
         throws SQLException {
         if (value == null) {

@@ -10,6 +10,7 @@ import org.sql2o.converters.ConverterException;
  */
 public class LocalTimeConverter implements Converter<LocalTime> {
 
+    @Override
     public LocalTime convert(Object val) throws ConverterException {
         if (val == null) {
             return null;
@@ -28,6 +29,7 @@ public class LocalTimeConverter implements Converter<LocalTime> {
         }
     }
 
+    @Override
     public Object toDatabaseParam(LocalTime val) {
         return new Timestamp(val.toDateTimeToday().getMillis());
     }

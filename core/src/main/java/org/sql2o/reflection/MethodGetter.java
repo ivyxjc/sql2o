@@ -20,6 +20,7 @@ public class MethodGetter implements Getter {
         type = method.getReturnType();
     }
 
+    @Override
     public Object getProperty(Object obj) {
         try {
             return this.method.invoke(obj);
@@ -36,6 +37,7 @@ public class MethodGetter implements Getter {
         }
     }
 
+    @Override
     public Class getType() {
         return type;
     }

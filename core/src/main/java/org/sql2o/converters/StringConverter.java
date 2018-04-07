@@ -11,6 +11,7 @@ import org.sql2o.tools.IOUtils;
  */
 public class StringConverter extends ConverterBase<String> {
 
+    @Override
     public String convert(Object val) throws ConverterException {
         if (val == null) {
             return null;

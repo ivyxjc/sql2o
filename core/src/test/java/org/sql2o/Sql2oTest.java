@@ -791,6 +791,7 @@ public class Sql2oTest extends BaseMemDbTest {
 
         try {
             sql2o.runInTransaction(new StatementRunnable() {
+                @Override
                 public void run(Connection connection, Object argument) {
                     connection.createQuery(
                         "insert into runinsidetransactiontable(value) values(:value)")
@@ -809,6 +810,7 @@ public class Sql2oTest extends BaseMemDbTest {
         assertEquals(0, rowCount);
 
         sql2o.runInTransaction(new StatementRunnable() {
+            @Override
             public void run(Connection connection, Object argument) {
                 connection.createQuery(
                     "insert into runinsidetransactiontable(value) values(:value)")
@@ -823,6 +825,7 @@ public class Sql2oTest extends BaseMemDbTest {
         String argument = "argument test";
 
         sql2o.runInTransaction(new StatementRunnable() {
+            @Override
             public void run(Connection connection, Object argument) {
                 Integer id = connection.createQuery(
                     "insert into runinsidetransactiontable(value) values(:value)")
@@ -886,6 +889,7 @@ public class Sql2oTest extends BaseMemDbTest {
 
         try {
             sql2o.runInTransaction(new StatementRunnable() {
+                @Override
                 public void run(Connection connection, Object argument) {
                     connection.createQuery(
                         "insert into testExceptionInRunnable(id, value) values(:id, :val)")
@@ -907,6 +911,7 @@ public class Sql2oTest extends BaseMemDbTest {
         assertEquals(0, c);
 
         sql2o.runInTransaction(new StatementRunnable() {
+            @Override
             public void run(Connection connection, Object argument) {
                 connection.createQuery(
                     "insert into testExceptionInRunnable(id, value) values(:id, :val)")
@@ -1404,6 +1409,7 @@ public class Sql2oTest extends BaseMemDbTest {
             "insert into User(name, email, text) values (:name, :email, :text)";
 
         sql2o.withConnection(new StatementRunnable() {
+            @Override
             public void run(Connection connection, Object argument) {
 
                 connection.createQuery(insertsql)
@@ -1427,6 +1433,7 @@ public class Sql2oTest extends BaseMemDbTest {
         });
 
         List<User> users = sql2o.withConnection(new StatementRunnableWithResult<List<User>>() {
+            @Override
             public List<User> run(Connection connection, Object argument) {
                 return sql2o.createQuery("select * from User").executeAndFetch(User.class);
             }
@@ -1436,6 +1443,7 @@ public class Sql2oTest extends BaseMemDbTest {
 
         try {
             sql2o.withConnection(new StatementRunnable() {
+                @Override
                 public void run(Connection connection, Object argument) {
 
                     connection.createQuery(insertsql)
@@ -1719,6 +1727,7 @@ public class Sql2oTest extends BaseMemDbTest {
     private static class runnerWithResultTester
         implements StatementRunnableWithResult<List<Integer>> {
 
+        @Override
         public List<Integer> run(Connection connection, Object argument) {
             String[] vals = (String[]) argument;
             List<Integer> keys = new ArrayList<Integer>();

@@ -5,8 +5,10 @@ package org.sql2o.converters;
  * used by sql2o to convert a value from the database into an {@link Enum}.
  */
 public class DefaultEnumConverterFactory implements EnumConverterFactory {
+    @Override
     public <E extends Enum> Converter<E> newConverter(final Class<E> enumType) {
         return new Converter<E>() {
+            @Override
             @SuppressWarnings("unchecked")
             public E convert(Object val) throws ConverterException {
                 if (val == null) {
@@ -27,6 +29,7 @@ public class DefaultEnumConverterFactory implements EnumConverterFactory {
                     "Cannot convert type '" + val.getClass().getName() + "' to an Enum");
             }
 
+            @Override
             public Object toDatabaseParam(Enum val) {
                 return val.name();
             }

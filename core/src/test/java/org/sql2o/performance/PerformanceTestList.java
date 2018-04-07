@@ -26,6 +26,7 @@ public class PerformanceTestList extends ArrayList<PerformanceTestBase> {
         for (int i = 1; i <= iterations; i++) {
             Iterable<PerformanceTestBase> sortedByRandom =
                 orderBy(this, new Function<PerformanceTestBase, Comparable>() {
+                    @Override
                     public Comparable apply(PerformanceTestBase input) {
                         return rand.nextInt();
                     }
@@ -47,6 +48,7 @@ public class PerformanceTestList extends ArrayList<PerformanceTestBase> {
     public void printResults(String heading) {
         Iterable<PerformanceTestBase> sortedByTime =
             orderBy(this, new Function<PerformanceTestBase, Comparable>() {
+                @Override
                 public Comparable apply(PerformanceTestBase input) {
                     return input.getWatch().elapsed(TimeUnit.MILLISECONDS);
                 }

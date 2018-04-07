@@ -45,6 +45,7 @@ public class DefaultResultSetHandlerFactory<T> implements ResultSetHandlerFactor
             // getter without converter
             if (converter == null) return getter;
             return new Getter() {
+                @Override
                 public Object getProperty(Object obj) {
                     try {
                         return converter.convert(getter.getProperty(obj));
@@ -56,6 +57,7 @@ public class DefaultResultSetHandlerFactory<T> implements ResultSetHandlerFactor
                     }
                 }
 
+                @Override
                 public Class getType() {
                     return getter.getType();
                 }
@@ -65,11 +67,13 @@ public class DefaultResultSetHandlerFactory<T> implements ResultSetHandlerFactor
         // i'm too lazy now to rewrite this case so I just call old unoptimized code...
         // TODO: rewrite, get rid of POJO class
         return new Getter() {
+            @Override
             public Object getProperty(Object obj) {
                 Pojo pojo = new Pojo(metadata, metadata.isCaseSensitive(), obj);
                 return pojo.getProperty(propertyPath, quirks);
             }
 
+            @Override
             public Class getType() {
                 // doesn't used anyway
                 return Object.class;
@@ -92,6 +96,7 @@ public class DefaultResultSetHandlerFactory<T> implements ResultSetHandlerFactor
             // setter without converter
             if (converter == null) return setter;
             return new Setter() {
+                @Override
                 public void setProperty(Object obj, Object value) {
                     try {
                         setter.setProperty(obj, converter.convert(value));
@@ -103,6 +108,7 @@ public class DefaultResultSetHandlerFactory<T> implements ResultSetHandlerFactor
                     }
                 }
 
+                @Override
                 public Class getType() {
                     return setter.getType();
                 }
@@ -112,11 +118,13 @@ public class DefaultResultSetHandlerFactory<T> implements ResultSetHandlerFactor
         // i'm too lazy now to rewrite this case so I just call old unoptimized code...
         // TODO: rewrite, get rid of POJO class
         return new Setter() {
+            @Override
             public void setProperty(Object obj, Object value) {
                 Pojo pojo = new Pojo(metadata, metadata.isCaseSensitive(), obj);
                 pojo.setProperty(propertyPath, value, quirks);
             }
 
+            @Override
             public Class getType() {
                 // doesn't used anyway
                 return Object.class;
@@ -124,6 +132,7 @@ public class DefaultResultSetHandlerFactory<T> implements ResultSetHandlerFactor
         };
     }
 
+    @Override
     @SuppressWarnings("unchecked")
     public ResultSetHandler<T> newResultSetHandler(final ResultSetMetaData meta)
         throws SQLException {
@@ -178,6 +187,7 @@ public class DefaultResultSetHandlerFactory<T> implements ResultSetHandlerFactor
          */
         useExecuteScalar = converter != null && columnCount == 1 && setters[1] == null;
         return new ResultSetHandler<T>() {
+            @Override
             @SuppressWarnings("unchecked")
             public T handle(ResultSet resultSet) throws SQLException {
                 if (useExecuteScalar) {

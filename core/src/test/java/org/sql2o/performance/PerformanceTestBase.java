@@ -9,6 +9,7 @@ import com.google.common.base.Stopwatch;
 public abstract class PerformanceTestBase implements Function<Integer, Void>, AutoCloseable {
     private Stopwatch watch = Stopwatch.createUnstarted();
 
+    @Override
     public Void apply(Integer input) {
         run(input);
         return null;
@@ -23,6 +24,7 @@ public abstract class PerformanceTestBase implements Function<Integer, Void>, Au
 
     public abstract void run(int input);
 
+    @Override
     public abstract void close();
 
     String getName() {

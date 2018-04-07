@@ -262,6 +262,7 @@ public class Connection implements AutoCloseable, Closeable {
         statements.remove(statement);
     }
 
+    @Override
     public void close() {
         boolean connectionIsClosed;
         try {

@@ -15,6 +15,7 @@ public class FieldSetter implements Setter {
         this.field.setAccessible(true);
     }
 
+    @Override
     public void setProperty(Object obj, Object value) {
         if (value == null && this.field.getType().isPrimitive()) {
             return; // dont try set null to a primitive field
@@ -29,6 +30,7 @@ public class FieldSetter implements Setter {
         }
     }
 
+    @Override
     public Class getType() {
         return field.getType();
     }
