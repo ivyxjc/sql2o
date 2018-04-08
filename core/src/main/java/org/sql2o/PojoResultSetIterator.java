@@ -2,6 +2,7 @@ package org.sql2o;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import lombok.extern.slf4j.Slf4j;
 import org.sql2o.quirks.Quirks;
 
 /**
@@ -10,6 +11,7 @@ import org.sql2o.quirks.Quirks;
  *
  * @author aldenquimby@gmail.com
  */
+@Slf4j
 public class PojoResultSetIterator<T> extends ResultSetIteratorBase<T> {
     private ResultSetHandler<T> handler;
 
@@ -18,6 +20,7 @@ public class PojoResultSetIterator<T> extends ResultSetIteratorBase<T> {
         super(rs, isCaseSensitive, quirks);
         try {
             this.handler = factory.newResultSetHandler(rs.getMetaData());
+            log.debug("" + rs.getMetaData().getColumnCount());
         } catch (SQLException e) {
             throw new Sql2oException("Database error: " + e.getMessage(), e);
         }

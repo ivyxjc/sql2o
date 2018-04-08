@@ -3,11 +3,13 @@ package org.sql2o.converters;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.ServiceLoader;
 import java.util.UUID;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
+import lombok.extern.slf4j.Slf4j;
 import org.joda.time.DateTime;
 import org.joda.time.LocalDate;
 import org.joda.time.LocalTime;
@@ -20,6 +22,7 @@ import org.sql2o.tools.FeatureDetector;
  * Static class used to register new converters.
  * Also used internally by sql2o to lookup a converter.
  */
+@Slf4j
 @SuppressWarnings("unchecked")
 public class Convert {
 
@@ -112,6 +115,10 @@ public class Convert {
             mapToFill.put(LocalTime.class, new LocalTimeConverter());
             mapToFill.put(LocalDate.class, new LocalDateConverter());
         }
+
+        //int jdkVersion=Integer.parseInt(System.getProperty("java.version"));
+        mapToFill.put(LocalDateTime.class, new Jdk8LocalDateTimeConverter());
+
     }
 
     @SuppressWarnings("UnusedDeclaration")
@@ -133,6 +140,7 @@ public class Convert {
         rl.lock();
         try {
             c = registeredConverters.get(clazz);
+            log.debug("registeredConverters.get is null:{} ", c == null);
         } finally {
             rl.unlock();
         }

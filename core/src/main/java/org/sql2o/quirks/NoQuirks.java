@@ -13,6 +13,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
+import lombok.extern.slf4j.Slf4j;
 import org.sql2o.converters.Convert;
 import org.sql2o.converters.Converter;
 import org.sql2o.quirks.parameterparsing.SqlParameterParsingStrategy;
@@ -22,6 +23,7 @@ import org.sql2o.quirks.parameterparsing.impl.DefaultSqlParameterParsingStrategy
  * @author aldenquimby@gmail.com
  * @since 4/6/14
  */
+@Slf4j
 public class NoQuirks implements Quirks {
     protected final Map<Class, Converter> converters;
     private final SqlParameterParsingStrategy sqlParameterParsingStrategy =
@@ -35,7 +37,7 @@ public class NoQuirks implements Quirks {
     }
 
     public NoQuirks() {
-        this(Collections.<Class, Converter>emptyMap());
+        this(Collections.emptyMap());
     }
 
     @SuppressWarnings("unchecked") @Override
@@ -43,6 +45,7 @@ public class NoQuirks implements Quirks {
         // if nobody change this collection outside constructor
         // it's thread-safe
         Converter c = converters.get(ofClass);
+        log.debug("convert is null:{} ", c == null);
         // if no "local" converter let's look in global
         return c != null ? c : Convert.getConverterIfExists(ofClass);
     }

@@ -22,6 +22,8 @@
     <name>sql2o</name>
     <description>Easy database query library</description>
     <dependencies>
+        <!-- https://mvnrepository.com/artifact/org.projectlombok/lombok -->
+
 
         <!-- optional dependencies -->
         <dependency>
@@ -30,12 +32,7 @@
             <version>${joda-time.version}</version>
             <optional>true</optional>
         </dependency>
-        <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-api</artifactId>
-            <version>${slf4j.version}</version>
-            <optional>true</optional>
-        </dependency>
+
 
         <!-- #204 : enables to read the javax.persistence.Column annotation -->
         <dependency>
