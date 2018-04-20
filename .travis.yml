@@ -32,5 +32,5 @@ after_script:
 - docker kill sql2o-oracle-xe-11g
 
 after_success:
-  - sonar:sonar  -Dsonar.organization=ivyxjc-github  -Dsonar.login=$ivyxjcSonar  -Dsonar.host.url=https://sonarcloud.io
+  - mvn sonar:sonar  -Dsonar.organization=ivyxjc-github  -Dsonar.login=$ivyxjcSonar  -Dsonar.host.url=https://sonarcloud.io
   - bash <(curl -s https://codecov.io/bash)
