@@ -21,6 +21,7 @@ before_script:
 - psql -c "CREATE DATABASE testdb WITH OWNER test;" -U postgres
 
 install:
+- mvn install -DskipTests=true -Dmaven.javadoc.skip=true
 - mvn compile -DskipTests=true -Dmaven.javadoc.skip=true -B -V -pl core,extensions,extensions/db2,extensions/postgres
 
 script:
@@ -31,4 +32,5 @@ after_script:
 - docker kill sql2o-oracle-xe-11g
 
 after_success:
+  - sonar:sonar  -Dsonar.organization=ivyxjc-github  -Dsonar.login=$ivyxjcSonar  -Dsonar.host.url=https://sonarcloud.io
   - bash <(curl -s https://codecov.io/bash)
